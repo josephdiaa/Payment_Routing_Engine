@@ -13,7 +13,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "gateway_daily_usage", uniqueConstraints = @UniqueConstraint(name = "uq_gateway_usage_date", columnNames = {"gateway_id", "usage_date"}))
+@Table(name = "gateway_daily_usage",
+        uniqueConstraints = @UniqueConstraint(name = "uq_gateway_usage_date",
+                columnNames = {"gateway_id", "usage_date"}))
 @Setter
 @Getter
 @AllArgsConstructor
