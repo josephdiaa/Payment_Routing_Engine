@@ -1,4 +1,4 @@
-package com.example.payment_routing_engine.modules.gateway.dto;
+package com.example.payment_routing_engine.modules.gateway.dto.responses;
 
 import com.example.payment_routing_engine.modules.gateway.domain.Gateway;
 import lombok.AllArgsConstructor;
