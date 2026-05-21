@@ -3,6 +3,7 @@ package com.example.payment_routing_engine.modules.gateway.web;
 import com.example.payment_routing_engine.common.response.ApiResponse;
 import com.example.payment_routing_engine.modules.gateway.dto.requests.CreateGatewayRequest;
 import com.example.payment_routing_engine.modules.gateway.dto.requests.UpdateGatewayRequest;
+import com.example.payment_routing_engine.modules.gateway.dto.requests.UpdateGatewayStatusRequest;
 import com.example.payment_routing_engine.modules.gateway.dto.responses.GatewayResponse;
 import com.example.payment_routing_engine.modules.gateway.service.GatewayService;
 import jakarta.validation.Valid;
@@ -32,7 +33,12 @@ public class GatewayController {
     }
 
     @PutMapping("/api/gateways/{gatewayId}")
-    public ResponseEntity<ApiResponse<GatewayResponse>> updateGateway(@PathVariable UUID gatewayId, @RequestBody UpdateGatewayRequest updateGatewayRequest){
+    public ResponseEntity<ApiResponse<GatewayResponse>> updateGateway(@PathVariable UUID gatewayId, @RequestBody @Valid UpdateGatewayRequest updateGatewayRequest){
        return ResponseEntity.ok(ApiResponse.ok(gatewayService.updateGateway(gatewayId,updateGatewayRequest),"Gateway updated successfully"));
+    }
+
+    @PatchMapping("/api/gateways/{gatewayId}/status")
+    public ResponseEntity<ApiResponse<GatewayResponse>> updateGatewayStatusRequest(@PathVariable UUID gatewayId, @RequestBody @Valid UpdateGatewayStatusRequest updateGatewayStatusRequest){
+        return ResponseEntity.ok(ApiResponse.ok(gatewayService.updateGatewayStatus(gatewayId,updateGatewayStatusRequest), "Gateway status updated"));
     }
 }
