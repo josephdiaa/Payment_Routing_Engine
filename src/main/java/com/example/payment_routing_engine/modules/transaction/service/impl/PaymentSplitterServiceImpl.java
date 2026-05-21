@@ -11,10 +11,12 @@ import com.example.payment_routing_engine.modules.transaction.dto.responses.Spli
 import com.example.payment_routing_engine.modules.transaction.service.PaymentSplitterService;
 import com.example.payment_routing_engine.modules.transaction.service.RoutingService;
 import com.example.payment_routing_engine.modules.usage.service.GatewayDailyUsageService;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,6 +35,7 @@ public class PaymentSplitterServiceImpl implements PaymentSplitterService {
     }
 
     @Override
+    @Transactional
     public SplitPaymentResponse splitPayment(SplitPaymentRequest request) {
         RecommendationRequest recommendationRequest = new RecommendationRequest(request.getBillerId(), request.getAmount(), request.getUrgency());
         RecommendationResponse recommendationResponse = routingService.recommend(recommendationRequest);
@@ -43,12 +46,12 @@ public class PaymentSplitterServiceImpl implements PaymentSplitterService {
             return new SplitPaymentResponse(gateway.getName(),false,splits,1,recommendationResponse.getRecommendedGateway().getEstimatedCommission(),true);
         }
         else{
-            List<BigDecimal> splits = List.of();
+            List<BigDecimal> splits =new ArrayList<>();;
             BigDecimal remainingAmount =request.getAmount();
             while(remainingAmount.compareTo(BigDecimal.ZERO)>0){
                 if(remainingAmount.compareTo(gateway.getMaxTransactionAmount())>=0){
                     splits.add(gateway.getMaxTransactionAmount());
-                    remainingAmount.subtract(gateway.getMaxTransactionAmount());
+                    remainingAmount=remainingAmount.subtract(gateway.getMaxTransactionAmount());
                 }
                 else{
                     if(remainingAmount.compareTo(gateway.getMinTransactionAmount())<0){
@@ -58,8 +61,14 @@ public class PaymentSplitterServiceImpl implements PaymentSplitterService {
                     remainingAmount=BigDecimal.ZERO;
                 }
             }
-
+            BigDecimal totalCommission = BigDecimal.ZERO;
+            for(BigDecimal split:splits){
+                totalCommission=totalCommission.add(commissionCalculator.calculateCommission(split,gateway.getFixedCommission(),gateway.getPercentageCommission()));
+            }
+            Boolean remainingQuota = false;
+           remainingQuota= gatewayDailyUsageService.getRemainingQuota(gateway.getId(),LocalDate.now(),gateway.getDailyLimit()).compareTo(request.getAmount())>=0;
+           return  new SplitPaymentResponse(gateway.getName(),true,splits,splits.size(),totalCommission,remainingQuota);
         }
-        return null;
+
     }
 }
