@@ -5,6 +5,7 @@ import com.example.payment_routing_engine.common.exception.ResourceNotFoundExcep
 import com.example.payment_routing_engine.modules.gateway.domain.Gateway;
 import com.example.payment_routing_engine.modules.gateway.dto.requests.CreateGatewayRequest;
 import com.example.payment_routing_engine.modules.gateway.dto.requests.UpdateGatewayRequest;
+import com.example.payment_routing_engine.modules.gateway.dto.requests.UpdateGatewayStatusRequest;
 import com.example.payment_routing_engine.modules.gateway.dto.responses.GatewayResponse;
 import com.example.payment_routing_engine.modules.gateway.repository.GatewayRepository;
 import com.example.payment_routing_engine.modules.gateway.service.GatewayService;
@@ -71,6 +72,18 @@ public class GatewayServiceImpl implements GatewayService {
         gatewayEntity.setMinTransactionAmount(updateGatewayRequest.getMinTransactionAmount());
         gatewayEntity.setPercentageCommission(updateGatewayRequest.getPercentageCommission());
         gatewayEntity.setProcessingTime(updateGatewayRequest.getProcessingTime());
+        gatewayRepository.saveAndFlush(gatewayEntity);
+        return GatewayResponse.fromEntity(gatewayEntity);
+    }
+
+    @Override
+    public GatewayResponse updateGatewayStatus(UUID id, UpdateGatewayStatusRequest updateGatewayStatusRequest) {
+        Optional<Gateway> gatewayOp = gatewayRepository.findById(id);
+        if(gatewayOp.isEmpty()){
+            throw new ResourceNotFoundException("Gateway not found with id: " + id);
+        }
+        Gateway gatewayEntity=gatewayOp.get();
+        gatewayEntity.setActive(updateGatewayStatusRequest.getActive());
         gatewayRepository.saveAndFlush(gatewayEntity);
         return GatewayResponse.fromEntity(gatewayEntity);
     }
