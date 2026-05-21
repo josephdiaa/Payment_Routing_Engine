@@ -11,6 +11,7 @@ import com.example.payment_routing_engine.modules.gateway.repository.GatewayRepo
 import com.example.payment_routing_engine.modules.gateway.service.GatewayService;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -35,6 +36,8 @@ public class GatewayServiceImpl implements GatewayService {
             throw new BusinessValidationException("Max transaction amount must be greater than min transaction amount");
         }
         Gateway gateway = new Gateway();
+        gateway.setCreatedAt(Instant.now());
+        gateway.setUpdatedAt(Instant.now());
         gateway.setActive(createGatewayRequest.getActive());
         gateway.setName(createGatewayRequest.getName());
         gateway.setAvailableDays(createGatewayRequest.getAvailableDays());
