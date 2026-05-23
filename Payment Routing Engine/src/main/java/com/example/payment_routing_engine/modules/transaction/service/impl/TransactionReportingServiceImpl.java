@@ -148,6 +148,7 @@ public class TransactionReportingServiceImpl implements TransactionReportingServ
         item.setGatewayId(gateway.getId());
         item.setGatewayName(gateway.getName());
         item.setTransactionCount(gatewayTransactions.size());
+        item.setDailyLimit(gateway.getDailyLimit());
         item.setTotalAmount(totalAmount);
         item.setTotalCommission(totalCommission);
         item.setUsedQuota(usedQuota);

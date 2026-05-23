@@ -1,0 +1,457 @@
+<div class="page">
+
+  <div class="page-header">
+
+    <div>
+      <p class="page-label">US-26</p>
+
+      <h1>Gateway Configurations</h1>
+
+      <p>
+        Review configured payment gateways and routing rules.
+      </p>
+    </div>
+
+    <div class="header-actions">
+
+      <button
+        class="primary-btn"
+        type="button"
+        (click)="openCreateForm()"
+      >
+        Add Gateway
+      </button>
+
+      <button
+        class="primary-btn"
+        type="button"
+        (click)="loadGateways()"
+        [disabled]="loading"
+      >
+        {{ loading ? 'Loading...' : 'Refresh' }}
+      </button>
+
+    </div>
+
+  </div>
+
+  <div
+    class="loading-box"
+    *ngIf="loading"
+  >
+    Loading gateways...
+  </div>
+
+  <div
+    class="error-box"
+    *ngIf="errorMessage"
+  >
+    {{ errorMessage }}
+  </div>
+
+  <div
+    class="success-box"
+    *ngIf="successMessage"
+  >
+    {{ successMessage }}
+  </div>
+
+  <div
+    class="card create-card"
+    *ngIf="showCreateForm"
+  >
+
+    <div class="card-header">
+      <h2>
+        {{ editingGatewayId ? 'Edit Gateway' : 'Create New Gateway' }}
+      </h2>
+
+      <p>
+        {{ editingGatewayId ? 'Update existing payment gateway configuration.' : 'Add a new payment gateway configuration.' }}
+      </p>
+    </div>
+
+    <div class="form-grid">
+
+      <div class="form-field">
+        <label>Name</label>
+
+        <input
+          type="text"
+          name="name"
+          [(ngModel)]="newGateway.name"
+          placeholder="Gateway name"
+        />
+      </div>
+
+      <div class="form-field">
+        <label>Fixed Commission</label>
+
+        <input
+          type="number"
+          name="fixedCommission"
+          [(ngModel)]="newGateway.fixedCommission"
+          placeholder="Example: 2"
+        />
+      </div>
+
+      <div class="form-field">
+        <label>Percentage Commission</label>
+
+        <input
+          type="number"
+          name="percentageCommission"
+          [(ngModel)]="newGateway.percentageCommission"
+          placeholder="Example: 1.5"
+        />
+      </div>
+
+      <div class="form-field">
+        <label>Daily Limit</label>
+
+        <input
+          type="number"
+          name="dailyLimit"
+          [(ngModel)]="newGateway.dailyLimit"
+          placeholder="Example: 100000"
+        />
+      </div>
+
+      <div class="form-field">
+        <label>Processing Time</label>
+
+        <select
+          name="processingTime"
+          [(ngModel)]="newGateway.processingTime"
+        >
+          <option
+            *ngFor="let option of processingTimeOptions"
+            [value]="option"
+          >
+            {{ option }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-field">
+        <label>Available Days</label>
+
+        <div class="multi-select">
+
+          <button
+            class="multi-select-button"
+            type="button"
+            (click)="toggleAvailableDaysDropdown()"
+          >
+            <span>{{ getSelectedDaysLabel() }}</span>
+
+            <span class="dropdown-arrow">
+              {{ availableDaysDropdownOpen ? '▲' : '▼' }}
+            </span>
+          </button>
+
+          <div
+            class="multi-select-menu"
+            *ngIf="availableDaysDropdownOpen"
+          >
+
+            <div class="multi-select-actions">
+
+              <button
+                type="button"
+                (click)="selectAllDays()"
+              >
+                Select All
+              </button>
+
+              <button
+                type="button"
+                (click)="clearAllDays()"
+              >
+                Clear
+              </button>
+
+            </div>
+
+            <label
+              class="multi-select-option"
+              *ngFor="let option of availableDaysOptions"
+            >
+              <input
+                type="checkbox"
+                [checked]="isDaySelected(option.value)"
+                (change)="toggleAvailableDay(option.value)"
+              />
+
+              <span>{{ option.label }}</span>
+            </label>
+
+          </div>
+
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label>
+          Availability Start
+          <span class="optional-label">Optional</span>
+        </label>
+
+        <input
+          type="time"
+          name="availabilityStart"
+          [(ngModel)]="newGateway.availabilityStart"
+        />
+      </div>
+
+      <div class="form-field">
+        <label>
+          Availability End
+          <span class="optional-label">Optional</span>
+        </label>
+
+        <input
+          type="time"
+          name="availabilityEnd"
+          [(ngModel)]="newGateway.availabilityEnd"
+        />
+      </div>
+
+      <div class="form-field">
+        <label>Min Transaction Amount</label>
+
+        <input
+          type="number"
+          name="minTransactionAmount"
+          [(ngModel)]="newGateway.minTransactionAmount"
+          placeholder="Example: 10"
+        />
+      </div>
+
+      <div class="form-field">
+        <label>
+          Max Transaction Amount
+          <span class="optional-label">Optional</span>
+        </label>
+
+        <input
+          type="number"
+          name="maxTransactionAmount"
+          [(ngModel)]="newGateway.maxTransactionAmount"
+          placeholder="Leave empty for no maximum"
+        />
+      </div>
+
+      <div class="form-field checkbox-field">
+        <label>Status</label>
+
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            name="active"
+            [(ngModel)]="newGateway.active"
+          />
+
+          Active Gateway
+        </label>
+      </div>
+
+    </div>
+
+    <div class="form-actions">
+
+      <button
+        class="primary-btn"
+        type="button"
+        (click)="submitGatewayForm()"
+        [disabled]="savingGateway"
+      >
+        <span *ngIf="!savingGateway">
+          {{ editingGatewayId ? 'Update Gateway' : 'Create Gateway' }}
+        </span>
+
+        <span *ngIf="savingGateway">
+          {{ editingGatewayId ? 'Updating...' : 'Creating...' }}
+        </span>
+      </button>
+
+      <button
+        class="secondary-btn"
+        type="button"
+        (click)="cancelGatewayForm()"
+        [disabled]="savingGateway"
+      >
+        Cancel
+      </button>
+
+    </div>
+
+  </div>
+
+  <div class="card">
+
+    <div class="card-header">
+
+      <div>
+        <h2>Gateways</h2>
+
+        <p>
+          Total configured gateways: {{ gateways.length }}
+        </p>
+      </div>
+
+    </div>
+
+    <div
+      class="empty-state"
+      *ngIf="!loading && gateways.length === 0"
+    >
+      <h3>No gateways found</h3>
+
+      <p>
+        No gateway configurations were returned from the backend.
+      </p>
+    </div>
+
+    <div
+      class="table-wrapper"
+      *ngIf="gateways.length > 0"
+    >
+
+      <table>
+
+        <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Fixed Commission</th>
+          <th>Percentage</th>
+          <th>Daily Limit</th>
+          <th>Processing Time</th>
+          <th>Available Days</th>
+          <th>Availability Start</th>
+          <th>Availability End</th>
+          <th>Min Amount</th>
+          <th>Max Amount</th>
+          <th>Actions</th>
+        </tr>
+        </thead>
+
+        <tbody>
+
+        <tr *ngFor="let gateway of gateways">
+
+          <td>
+            <div class="gateway-name">
+
+              <div class="avatar">
+                {{ gateway.name.charAt(0) }}
+              </div>
+
+              <div>
+                <strong>{{ gateway.name }}</strong>
+
+                <span>
+                    {{ gateway.id }}
+                  </span>
+              </div>
+
+            </div>
+          </td>
+
+          <td>
+              <span
+                class="status-pill"
+                [class.active]="gateway.active"
+                [class.inactive]="!gateway.active"
+              >
+                {{ gateway.active ? 'Active' : 'Inactive' }}
+              </span>
+          </td>
+
+          <td>
+            {{ formatMoney(gateway.fixedCommission) }}
+          </td>
+
+          <td>
+            {{ gateway.percentageCommission }}%
+          </td>
+
+          <td>
+            {{ formatMoney(gateway.dailyLimit) }}
+          </td>
+
+          <td>
+            {{ gateway.processingTime || '-' }}
+          </td>
+
+          <td>
+            {{ gateway.availableDays || '-' }}
+          </td>
+
+          <td>
+            {{ formatTimeDisplay(gateway.availabilityStart) }}
+          </td>
+
+          <td>
+            {{ formatTimeDisplay(gateway.availabilityEnd) }}
+          </td>
+
+          <td>
+            {{ formatMoney(gateway.minTransactionAmount) }}
+          </td>
+
+          <td>
+              <span *ngIf="gateway.maxTransactionAmount; else noMaxAmount">
+                {{ formatMoney(gateway.maxTransactionAmount) }}
+              </span>
+
+            <ng-template #noMaxAmount>
+              <span class="muted-text">No maximum</span>
+            </ng-template>
+          </td>
+
+          <td>
+            <div class="table-actions">
+
+              <button
+                class="edit-action-btn"
+                type="button"
+                (click)="startEditGateway(gateway)"
+              >
+                Edit
+              </button>
+
+              <button
+                class="status-action-btn"
+                type="button"
+                [class.activate]="!gateway.active"
+                [class.deactivate]="gateway.active"
+                [disabled]="updatingGatewayId === gateway.id"
+                (click)="toggleGatewayStatus(gateway)"
+              >
+
+                  <span *ngIf="updatingGatewayId !== gateway.id">
+                    {{ gateway.active ? 'Deactivate' : 'Activate' }}
+                  </span>
+
+                <span *ngIf="updatingGatewayId === gateway.id">
+                    Updating...
+                  </span>
+
+              </button>
+
+            </div>
+          </td>
+
+        </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>

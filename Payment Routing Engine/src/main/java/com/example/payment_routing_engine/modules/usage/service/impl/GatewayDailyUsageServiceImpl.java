@@ -7,6 +7,7 @@ import com.example.payment_routing_engine.modules.usage.service.GatewayDailyUsag
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
@@ -35,7 +36,14 @@ public class GatewayDailyUsageServiceImpl implements GatewayDailyUsageService {
     public void updateUsage(UUID gatewayId, LocalDate date,Gateway gateway,BigDecimal amount){
         Optional<GatewayDailyUsage> gatewayDailyUsage = gatewayDailyUsageRepository.findByGatewayIdAndUsageDate(gatewayId,date);
         if(gatewayDailyUsage.isEmpty()){
-            GatewayDailyUsage newGatewayDailyUsage = new GatewayDailyUsage(gateway,date,amount,1);
+            GatewayDailyUsage newGatewayDailyUsage = new GatewayDailyUsage();
+            newGatewayDailyUsage.setCreatedAt(Instant.now());
+            newGatewayDailyUsage.setUpdatedAt(Instant.now());
+            newGatewayDailyUsage.setIsDeleted(false);
+            newGatewayDailyUsage.setGateway(gateway);
+            newGatewayDailyUsage.setUsageDate(date);
+            newGatewayDailyUsage.setTotalAmount(amount);
+            newGatewayDailyUsage.setTransactionCount(1);
             gatewayDailyUsageRepository.saveAndFlush(newGatewayDailyUsage);
         }
         else{

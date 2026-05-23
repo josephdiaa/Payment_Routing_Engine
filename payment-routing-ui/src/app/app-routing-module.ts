@@ -3,29 +3,49 @@ import { RouterModule, Routes } from '@angular/router';
 
 import { Login } from './components/login/login';
 import { Dashboard } from './components/dashboard/dashboard';
+import { Gateways } from './components/gateways/gateways';
+import { PaymentRecommendation } from './components/payment-recommendation/payment-recommendation';
+import { Transactions } from './components/transactions/transactions';
+import { ProcessPayment } from './components/process-payment/process-payment';
 
 const routes: Routes = [
   {
     path: '',
-    redirectTo: 'login',
-    pathMatch: 'full'
+    redirectTo: 'dashboard',
+    pathMatch: 'full',
   },
   {
     path: 'login',
-    component: Login
+    component: Login,
   },
   {
     path: 'dashboard',
-    component: Dashboard
+    component: Dashboard,
+  },
+  {
+    path: 'gateways',
+    component: Gateways,
+  },
+  {
+    path: 'payment-recommendation',
+    component: PaymentRecommendation,
+  },
+  {
+    path: 'process-payment',
+    component: ProcessPayment,
+  },
+  {
+    path: 'transactions',
+    component: Transactions,
   },
   {
     path: '**',
-    redirectTo: 'login'
-  }
+    redirectTo: 'dashboard',
+  },
 ];
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
+  exports: [RouterModule],
 })
 export class AppRoutingModule {}

@@ -17,6 +17,7 @@ import com.example.payment_routing_engine.modules.usage.service.GatewayDailyUsag
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -53,6 +54,8 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
         Gateway gateway = gatewayRepository.getReferenceById(recommendationResponse.getRecommendedGateway().getId());
         gatewayDailyUsageService.updateUsage(gateway.getId(), LocalDate.now(), gateway, request.getAmount());
         PaymentTransaction paymentTransaction = new PaymentTransaction(UUID.randomUUID().toString(), request.getAmount(), recommendationResponse.getRecommendedGateway().getEstimatedCommission(), TransactionStatus.SUCCESS, biller, gateway, LocalDateTime.now());
+        paymentTransaction.setCreatedAt(Instant.now());
+        paymentTransaction.setUpdatedAt(Instant.now());
         paymentTransactionRepository.saveAndFlush(paymentTransaction);
         return paymentTransaction.getReferenceNumber();
     }

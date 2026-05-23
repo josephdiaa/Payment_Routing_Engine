@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
@@ -8,7 +8,7 @@ import {
   DashboardService,
   GatewayResponse,
   GatewayBreakdownItem,
-  DailyTransactionSummaryResponse
+  DailyTransactionSummaryResponse,
 } from '../../services/dashboard';
 
 interface MetricCard {
@@ -31,10 +31,9 @@ interface GatewayCard {
   selector: 'app-dashboard',
   standalone: false,
   templateUrl: './dashboard.html',
-  styleUrl: './dashboard.css'
+  styleUrl: './dashboard.css',
 })
 export class Dashboard implements OnInit {
-
   userName = 'Admin';
 
   billerId = 'BILLER001';
@@ -54,7 +53,8 @@ export class Dashboard implements OnInit {
   constructor(
     private authService: AuthService,
     private dashboardService: DashboardService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -62,55 +62,63 @@ export class Dashboard implements OnInit {
   }
 
   loadDashboardData(): void {
+    const token = this.authService.getToken();
+
+    if (!token) {
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    if (!this.billerId || !this.selectedDate) {
+      this.errorMessage = 'Please enter biller ID and date';
+      return;
+    }
+
     this.loading = true;
     this.errorMessage = '';
+
+    this.cdr.detectChanges();
 
     forkJoin({
       gatewaysResponse: this.dashboardService.getGateways(),
       summaryResponse: this.dashboardService.getDailyTransactionSummary(
         this.billerId,
-        this.selectedDate
-      )
+        this.selectedDate,
+      ),
     }).subscribe({
       next: ({ gatewaysResponse, summaryResponse }) => {
-
         const backendGateways = gatewaysResponse.data || [];
 
         const summary = summaryResponse.data;
 
         this.breakdown = summary?.breakdown || [];
 
-        this.gateways = this.buildGatewayCards(
-          backendGateways,
-          this.breakdown
-        );
+        this.gateways = this.buildGatewayCards(backendGateways, this.breakdown);
 
-        this.metrics = this.buildMetrics(
-          summary,
-          backendGateways
-        );
+        this.metrics = this.buildMetrics(summary, backendGateways);
 
         this.loading = false;
+
+        this.cdr.detectChanges();
       },
-      error: () => {
+      error: (error) => {
+        console.log(error);
+
         this.loading = false;
         this.errorMessage = 'Failed to load dashboard data';
-      }
+
+        this.cdr.detectChanges();
+      },
     });
   }
 
   buildMetrics(
     summary: DailyTransactionSummaryResponse,
-    backendGateways: GatewayResponse[]
+    backendGateways: GatewayResponse[],
   ): MetricCard[] {
+    const totalTransactions = this.getTotalTransactions(summary?.breakdown || []);
 
-    const totalTransactions = this.getTotalTransactions(
-      summary?.breakdown || []
-    );
-
-    const activeGateways = backendGateways.filter(
-      gateway => gateway.active
-    ).length;
+    const activeGateways = backendGateways.filter((gateway) => gateway.active).length;
 
     return [
       {
@@ -118,73 +126,56 @@ export class Dashboard implements OnInit {
         value: totalTransactions.toString(),
         change: 'Today selected date',
         icon: '↗',
-        trend: 'neutral'
+        trend: 'neutral',
       },
       {
         title: 'Total Amount',
         value: this.formatMoney(summary?.totalProcessedAmount || 0),
         change: 'Processed amount',
         icon: '💳',
-        trend: 'up'
+        trend: 'up',
       },
       {
         title: 'Total Commission',
         value: this.formatMoney(summary?.totalCommissionCharged || 0),
         change: 'Commission charged',
         icon: '٪',
-        trend: 'up'
+        trend: 'up',
       },
       {
         title: 'Active Gateways',
         value: activeGateways.toString(),
         change: 'Currently enabled',
         icon: '🔀',
-        trend: 'neutral'
-      }
+        trend: 'neutral',
+      },
     ];
   }
 
   buildGatewayCards(
     backendGateways: GatewayResponse[],
-    breakdown: GatewayBreakdownItem[]
+    breakdown: GatewayBreakdownItem[],
   ): GatewayCard[] {
-
-    return backendGateways.map(gateway => {
-
-      const gatewayBreakdown = breakdown.find(
-        item => item.gatewayId === gateway.id
-      );
+    return backendGateways.map((gateway) => {
+      const gatewayBreakdown = breakdown.find((item) => item.gatewayId === gateway.id);
 
       const usedQuota = gatewayBreakdown?.usedQuota || 0;
 
-      const dailyLimit =
-        gatewayBreakdown?.dailyLimit ||
-        gateway.dailyLimit ||
-        0;
+      const dailyLimit = gatewayBreakdown?.dailyLimit || gateway.dailyLimit || 0;
 
-      const usagePercentage =
-        dailyLimit > 0
-          ? Math.round((usedQuota / dailyLimit) * 100)
-          : 0;
+      const usagePercentage = dailyLimit > 0 ? Math.round((usedQuota / dailyLimit) * 100) : 0;
 
       return {
         name: gateway.name,
-        status: this.getGatewayStatus(
-          gateway.active,
-          usagePercentage
-        ),
+        status: this.getGatewayStatus(gateway.active, usagePercentage),
         successRate: 'N/A',
         dailyUsage: `${usagePercentage}%`,
-        quota: `${this.formatMoney(usedQuota)} / ${this.formatMoney(dailyLimit)}`
+        quota: `${this.formatMoney(usedQuota)} / ${this.formatMoney(dailyLimit)}`,
       };
     });
   }
 
-  getGatewayStatus(
-    active: boolean,
-    usagePercentage: number
-  ): 'Active' | 'Warning' | 'Inactive' {
-
+  getGatewayStatus(active: boolean, usagePercentage: number): 'Active' | 'Warning' | 'Inactive' {
     if (!active) {
       return 'Inactive';
     }
@@ -196,18 +187,11 @@ export class Dashboard implements OnInit {
     return 'Active';
   }
 
-  getTotalTransactions(
-    breakdown: GatewayBreakdownItem[]
-  ): number {
-
-    return breakdown.reduce(
-      (total, item) => total + item.transactionCount,
-      0
-    );
+  getTotalTransactions(breakdown: GatewayBreakdownItem[]): number {
+    return breakdown.reduce((total, item) => total + item.transactionCount, 0);
   }
 
   formatMoney(value: number): string {
-
     if (!value) {
       return 'EGP 0';
     }
