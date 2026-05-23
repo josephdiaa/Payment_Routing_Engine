@@ -1,0 +1,135 @@
+<div class="page">
+
+  <div class="page-header">
+    <div>
+      <p class="page-label">US-28</p>
+      <h1>Transaction History</h1>
+      <p>Monitor daily payment activity and gateway breakdown.</p>
+    </div>
+  </div>
+
+  <section class="filter-card">
+
+    <div class="form-field">
+      <label>Biller ID</label>
+      <input
+        type="text"
+        name="billerId"
+        [(ngModel)]="billerId"
+        placeholder="Example: BILLER001"
+      />
+    </div>
+
+    <div class="form-field">
+      <label>Date</label>
+      <input
+        type="date"
+        name="selectedDate"
+        [(ngModel)]="selectedDate"
+      />
+    </div>
+
+    <button
+      class="primary-btn"
+      type="button"
+      (click)="loadTransactions()"
+      [disabled]="loading"
+    >
+      {{ loading ? 'Loading...' : 'Load Summary' }}
+    </button>
+
+  </section>
+
+  <div class="error-box" *ngIf="errorMessage">
+    {{ errorMessage }}
+  </div>
+
+  <div class="loading-box" *ngIf="loading">
+    Loading transaction summary...
+  </div>
+
+  <section class="metrics-grid" *ngIf="summary">
+
+    <div class="metric-card">
+      <p>Total Amount</p>
+      <h2>{{ formatMoney(summary.totalProcessedAmount) }}</h2>
+    </div>
+
+    <div class="metric-card">
+      <p>Total Commission</p>
+      <h2>{{ formatMoney(summary.totalCommissionCharged) }}</h2>
+    </div>
+
+    <div class="metric-card">
+      <p>Gateways Used</p>
+      <h2>{{ breakdown.length }}</h2>
+    </div>
+
+    <div class="metric-card">
+      <p>Total Transactions</p>
+      <h2>{{ getTotalTransactions() }}</h2>
+      <small>
+        Total transactions across all gateways
+      </small>
+    </div>
+
+  </section>
+
+  <section class="card">
+
+    <div class="card-header">
+      <div>
+        <h2>Gateway Breakdown</h2>
+        <p>
+          Breakdown for biller <strong>{{ billerId }}</strong>
+          on <strong>{{ selectedDate }}</strong>
+        </p>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="!loading && breakdown.length === 0">
+      <h3>No breakdown data</h3>
+      <p>Enter biller ID and date, then click Load Summary.</p>
+    </div>
+
+    <div class="table-wrapper" *ngIf="breakdown.length > 0">
+
+      <table>
+        <thead>
+        <tr>
+          <th>Gateway</th>
+          <th>Transaction Count</th>
+          <th>Total Amount</th>
+          <th>Total Commission</th>
+          <th>Daily Limit</th>
+          <th>Used Quota</th>
+          <th>Remaining Quota</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr *ngFor="let item of breakdown">
+          <td>
+            <strong>{{ item.gatewayName }}</strong>
+            <span>{{ item.gatewayId }}</span>
+          </td>
+
+          <td>{{ item.transactionCount }}</td>
+          <td>{{ formatMoney(item.totalAmount) }}</td>
+          <td>{{ formatMoney(item.totalCommission) }}</td>
+          <td>{{ formatMoney(item.dailyLimit) }}</td>
+          <td>{{ formatMoney(item.usedQuota) }}</td>
+          <td>
+              <span class="remaining-badge">
+                {{ formatMoney(item.remainingQuota) }}
+              </span>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+
+    </div>
+
+  </section>
+
+</div>

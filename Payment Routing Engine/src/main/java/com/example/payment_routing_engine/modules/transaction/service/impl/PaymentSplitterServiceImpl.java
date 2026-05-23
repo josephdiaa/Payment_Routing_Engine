@@ -37,38 +37,113 @@ public class PaymentSplitterServiceImpl implements PaymentSplitterService {
     @Override
     @Transactional
     public SplitPaymentResponse splitPayment(SplitPaymentRequest request) {
-        RecommendationRequest recommendationRequest = new RecommendationRequest(request.getBillerId(), request.getAmount(), request.getUrgency());
-        RecommendationResponse recommendationResponse = routingService.recommend(recommendationRequest);
-        Gateway gateway = gatewayRepository.getReferenceById(recommendationResponse.getRecommendedGateway().getId());
 
-        if(null==gateway.getMaxTransactionAmount() || request.getAmount().compareTo(gateway.getMaxTransactionAmount())<=0 ){
-            List<BigDecimal> splits= Collections.singletonList(request.getAmount());
-            return new SplitPaymentResponse(gateway.getName(),false,splits,1,recommendationResponse.getRecommendedGateway().getEstimatedCommission(),true);
-        }
-        else{
-            List<BigDecimal> splits =new ArrayList<>();;
-            BigDecimal remainingAmount =request.getAmount();
-            while(remainingAmount.compareTo(BigDecimal.ZERO)>0){
-                if(remainingAmount.compareTo(gateway.getMaxTransactionAmount())>=0){
-                    splits.add(gateway.getMaxTransactionAmount());
-                    remainingAmount=remainingAmount.subtract(gateway.getMaxTransactionAmount());
-                }
-                else{
-                    if(remainingAmount.compareTo(gateway.getMinTransactionAmount())<0){
-                        throw new BusinessValidationException("Last split chunk is smaller than gateway minimum limit");
-                    }
-                    splits.add(remainingAmount);
-                    remainingAmount=BigDecimal.ZERO;
-                }
+        List<Gateway> gateways = gatewayRepository.findAll();
+
+        Gateway selectedGateway = null;
+
+        for (Gateway gateway : gateways) {
+
+            if (!gateway.getActive()) {
+                continue;
             }
-            BigDecimal totalCommission = BigDecimal.ZERO;
-            for(BigDecimal split:splits){
-                totalCommission=totalCommission.add(commissionCalculator.calculateCommission(split,gateway.getFixedCommission(),gateway.getPercentageCommission()));
+
+            if (gateway.getMaxTransactionAmount() == null) {
+                selectedGateway = gateway;
+                break;
             }
-            Boolean remainingQuota = false;
-           remainingQuota= gatewayDailyUsageService.getRemainingQuota(gateway.getId(),LocalDate.now(),gateway.getDailyLimit()).compareTo(request.getAmount())>=0;
-           return  new SplitPaymentResponse(gateway.getName(),true,splits,splits.size(),totalCommission,remainingQuota);
+
+            if (request.getAmount().compareTo(gateway.getMinTransactionAmount()) >= 0) {
+                selectedGateway = gateway;
+                break;
+            }
         }
 
+        if (selectedGateway == null) {
+            throw new BusinessValidationException("No available gateway found for this request");
+        }
+
+        BigDecimal remainingQuota =
+                gatewayDailyUsageService.getRemainingQuota(
+                        selectedGateway.getId(),
+                        LocalDate.now(),
+                        selectedGateway.getDailyLimit()
+                );
+
+        boolean quotaAvailable =
+                remainingQuota.compareTo(request.getAmount()) >= 0;
+
+        BigDecimal maxTransactionAmount =
+                selectedGateway.getMaxTransactionAmount();
+
+        if (maxTransactionAmount == null ||
+                request.getAmount().compareTo(maxTransactionAmount) <= 0) {
+
+            List<BigDecimal> splits =
+                    Collections.singletonList(request.getAmount());
+
+            BigDecimal totalCommission =
+                    commissionCalculator.calculateCommission(
+                            request.getAmount(),
+                            selectedGateway.getFixedCommission(),
+                            selectedGateway.getPercentageCommission()
+                    );
+
+            return new SplitPaymentResponse(
+                    selectedGateway.getName(),
+                    false,
+                    splits,
+                    1,
+                    totalCommission,
+                    quotaAvailable
+            );
+        }
+
+        List<BigDecimal> splits = new ArrayList<>();
+
+        BigDecimal remainingAmount = request.getAmount();
+
+        while (remainingAmount.compareTo(BigDecimal.ZERO) > 0) {
+
+            if (remainingAmount.compareTo(maxTransactionAmount) >= 0) {
+
+                splits.add(maxTransactionAmount);
+
+                remainingAmount = remainingAmount.subtract(maxTransactionAmount);
+
+            } else {
+
+                if (remainingAmount.compareTo(selectedGateway.getMinTransactionAmount()) < 0) {
+                    throw new BusinessValidationException(
+                            "Last split chunk is smaller than gateway minimum limit"
+                    );
+                }
+
+                splits.add(remainingAmount);
+
+                remainingAmount = BigDecimal.ZERO;
+            }
+        }
+
+        BigDecimal totalCommission = BigDecimal.ZERO;
+
+        for (BigDecimal split : splits) {
+            totalCommission = totalCommission.add(
+                    commissionCalculator.calculateCommission(
+                            split,
+                            selectedGateway.getFixedCommission(),
+                            selectedGateway.getPercentageCommission()
+                    )
+            );
+        }
+
+        return new SplitPaymentResponse(
+                selectedGateway.getName(),
+                true,
+                splits,
+                splits.size(),
+                totalCommission,
+                quotaAvailable
+        );
     }
 }

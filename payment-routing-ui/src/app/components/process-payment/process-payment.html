@@ -1,0 +1,144 @@
+<div class="page">
+
+  <div class="page-header">
+    <div>
+      <p class="page-label">Payment API</p>
+
+      <h1>Process Payment</h1>
+
+      <p>
+        Submit a real payment request to the backend routing engine.
+      </p>
+    </div>
+  </div>
+
+  <div
+    class="error-box"
+    *ngIf="errorMessage"
+  >
+    {{ errorMessage }}
+  </div>
+
+  <div
+    class="success-box"
+    *ngIf="successMessage"
+  >
+    {{ successMessage }}
+  </div>
+
+  <section class="form-card">
+
+    <div class="card-header">
+      <h2>Payment Details</h2>
+
+      <p>
+        Enter biller ID, amount, and urgency to process the payment.
+      </p>
+    </div>
+
+    <div class="form-grid">
+
+      <div class="form-field">
+        <label>Biller ID</label>
+
+        <input
+          type="text"
+          name="billerId"
+          [(ngModel)]="billerId"
+          placeholder="Example: WE"
+        />
+      </div>
+
+      <div class="form-field">
+        <label>Amount</label>
+
+        <input
+          type="number"
+          name="amount"
+          [(ngModel)]="amount"
+          placeholder="Example: 5000"
+        />
+      </div>
+
+      <div class="form-field">
+        <label>Urgency</label>
+
+        <select
+          name="urgency"
+          [(ngModel)]="urgency"
+        >
+          <option value="CAN_WAIT">Can Wait</option>
+          <option value="INSTANT">Instant</option>
+        </select>
+      </div>
+
+    </div>
+
+    <div class="form-actions">
+
+      <button
+        class="primary-btn"
+        type="button"
+        (click)="processPayment()"
+        [disabled]="loading"
+      >
+        {{ loading ? 'Processing...' : 'Process Payment' }}
+      </button>
+
+      <button
+        class="secondary-btn"
+        type="button"
+        (click)="resetForm()"
+        [disabled]="loading"
+      >
+        Reset
+      </button>
+
+    </div>
+
+  </section>
+
+  <section
+    class="result-card"
+    *ngIf="processResult"
+  >
+
+    <div class="card-header">
+      <h2>Process Result</h2>
+
+      <p>
+        Backend response from payment processing API.
+      </p>
+    </div>
+
+    <div class="result-box">
+      <div class="result-icon">✅</div>
+
+      <div>
+        <p>Payment Status</p>
+        <h3>{{ processResult }}</h3>
+      </div>
+    </div>
+
+    <div class="summary-grid">
+
+      <div class="summary-item">
+        <p>Biller ID</p>
+        <strong>{{ billerId }}</strong>
+      </div>
+
+      <div class="summary-item">
+        <p>Amount</p>
+        <strong>{{ formatMoney(amount) }}</strong>
+      </div>
+
+      <div class="summary-item">
+        <p>Urgency</p>
+        <strong>{{ urgency }}</strong>
+      </div>
+
+    </div>
+
+  </section>
+
+</div>

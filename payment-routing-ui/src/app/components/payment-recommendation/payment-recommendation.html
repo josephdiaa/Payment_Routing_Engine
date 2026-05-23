@@ -1,0 +1,172 @@
+<div class="page">
+
+  <div class="page-header">
+    <div>
+      <p class="page-label">US-27 / US-29</p>
+      <h1>Payment Recommendation</h1>
+      <p>Enter payment details to recommend a gateway and test split payments.</p>
+    </div>
+  </div>
+
+  <section class="form-card">
+
+    <div class="form-grid">
+
+      <div class="form-field">
+        <label>Biller ID</label>
+        <input
+          type="text"
+          name="billerId"
+          [(ngModel)]="billerId"
+          placeholder="Example: BILLER001"
+        />
+      </div>
+
+      <div class="form-field">
+        <label>Amount</label>
+        <input
+          type="number"
+          name="amount"
+          [(ngModel)]="amount"
+          placeholder="Example: 1500"
+        />
+      </div>
+
+      <div class="form-field">
+        <label>Urgency</label>
+        <select
+          name="urgency"
+          [(ngModel)]="urgency"
+        >
+          <option value="CAN_WAIT">Can Wait</option>
+          <option value="INSTANT">Instant</option>
+        </select>
+      </div>
+
+    </div>
+
+    <div class="button-row">
+      <button
+        class="primary-btn"
+        type="button"
+        (click)="recommendGateway()"
+        [disabled]="recommendationLoading"
+      >
+        {{ recommendationLoading ? 'Loading...' : 'Recommend Gateway' }}
+      </button>
+
+      <button
+        class="secondary-btn"
+        type="button"
+        (click)="splitPayment()"
+        [disabled]="splitLoading"
+      >
+        {{ splitLoading ? 'Calculating...' : 'Test Split Payment' }}
+      </button>
+    </div>
+
+  </section>
+
+  <div class="error-box" *ngIf="recommendationError">
+    {{ recommendationError }}
+  </div>
+
+  <section class="result-card" *ngIf="recommendationResult">
+
+    <div class="card-header">
+      <h2>Recommended Gateway</h2>
+      <p>Best gateway based on your payment details.</p>
+    </div>
+
+    <div class="recommended-card">
+      <div class="gateway-avatar">
+        {{ recommendationResult.recommendedGateway.name.charAt(0) }}
+      </div>
+
+      <div>
+        <h3>{{ recommendationResult.recommendedGateway.name }}</h3>
+        <p>ID: {{ recommendationResult.recommendedGateway.id }}</p>
+        <p>
+          Estimated Commission:
+          <strong>{{ formatMoney(recommendationResult.recommendedGateway.estimatedCommission) }}</strong>
+        </p>
+        <p>
+          Processing Time:
+          <strong>{{ recommendationResult.recommendedGateway.processingTime }}</strong>
+        </p>
+      </div>
+    </div>
+
+    <h3 class="section-title">Alternatives</h3>
+
+    <div class="alternative-grid">
+
+      <div
+        class="alternative-card"
+        *ngFor="let item of recommendationResult.alternatives"
+      >
+        <h4>{{ item.name }}</h4>
+        <p>{{ item.id }}</p>
+        <strong>{{ formatMoney(item.estimatedCommission) }}</strong>
+        <span>{{ item.processingTime }}</span>
+      </div>
+
+    </div>
+
+  </section>
+
+  <div class="error-box" *ngIf="splitError">
+    {{ splitError }}
+  </div>
+
+  <section class="result-card" *ngIf="splitResult">
+
+    <div class="card-header">
+      <h2>Bonus: Split Payment Result</h2>
+      <p>Shows how the backend divides over-limit payments.</p>
+    </div>
+
+    <div class="split-grid">
+
+      <div class="split-metric">
+        <p>Selected Gateway</p>
+        <strong>{{ splitResult.selectedGateway }}</strong>
+      </div>
+
+      <div class="split-metric">
+        <p>Requires Splitting</p>
+        <strong>{{ splitResult.requiresSplitting ? 'Yes' : 'No' }}</strong>
+      </div>
+
+      <div class="split-metric">
+        <p>Split Count</p>
+        <strong>{{ splitResult.splitCount }}</strong>
+      </div>
+
+      <div class="split-metric">
+        <p>Total Commission</p>
+        <strong>{{ formatMoney(splitResult.totalCommission) }}</strong>
+      </div>
+
+      <div class="split-metric">
+        <p>Quota Available</p>
+        <strong>{{ splitResult.quotaAvailable ? 'Yes' : 'No' }}</strong>
+      </div>
+
+    </div>
+
+    <h3 class="section-title">Split Amounts</h3>
+
+    <div class="split-list">
+      <div
+        class="split-item"
+        *ngFor="let split of splitResult.splits; let i = index"
+      >
+        <span>Split {{ i + 1 }}</span>
+        <strong>{{ formatMoney(split) }}</strong>
+      </div>
+    </div>
+
+  </section>
+
+</div>
