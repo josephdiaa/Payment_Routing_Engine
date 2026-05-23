@@ -4,7 +4,7 @@
     <div>
       <p class="page-label">US-27 / US-29</p>
       <h1>Payment Recommendation</h1>
-      <p>Enter payment details to recommend a gateway and test split payments.</p>
+      <p>Enter payment details to recommend a gateway, split payment, or process payments.</p>
     </div>
   </div>
 
@@ -14,6 +14,7 @@
 
       <div class="form-field">
         <label>Biller ID</label>
+
         <input
           type="text"
           name="billerId"
@@ -24,6 +25,7 @@
 
       <div class="form-field">
         <label>Amount</label>
+
         <input
           type="number"
           name="amount"
@@ -34,6 +36,7 @@
 
       <div class="form-field">
         <label>Urgency</label>
+
         <select
           name="urgency"
           [(ngModel)]="urgency"
@@ -46,11 +49,12 @@
     </div>
 
     <div class="button-row">
+
       <button
         class="primary-btn"
         type="button"
         (click)="recommendGateway()"
-        [disabled]="recommendationLoading"
+        [disabled]="recommendationLoading || splitLoading || processPaymentLoading || processSplitLoading"
       >
         {{ recommendationLoading ? 'Loading...' : 'Recommend Gateway' }}
       </button>
@@ -59,10 +63,11 @@
         class="secondary-btn"
         type="button"
         (click)="splitPayment()"
-        [disabled]="splitLoading"
+        [disabled]="splitLoading || recommendationLoading || processPaymentLoading || processSplitLoading"
       >
-        {{ splitLoading ? 'Calculating...' : 'Test Split Payment' }}
+        {{ splitLoading ? 'Calculating...' : 'Split Payment' }}
       </button>
+
     </div>
 
   </section>
@@ -71,7 +76,23 @@
     {{ recommendationError }}
   </div>
 
-  <section class="result-card" *ngIf="recommendationResult">
+  <div class="error-box" *ngIf="splitError">
+    {{ splitError }}
+  </div>
+
+  <div class="error-box" *ngIf="processError">
+    {{ processError }}
+  </div>
+
+  <div class="success-box" *ngIf="successMessage">
+    {{ successMessage }}
+  </div>
+
+  <!-- Recommended Gateway Result -->
+  <section
+    class="result-card"
+    *ngIf="recommendationResult"
+  >
 
     <div class="card-header">
       <h2>Recommended Gateway</h2>
@@ -79,27 +100,72 @@
     </div>
 
     <div class="recommended-card">
+
       <div class="gateway-avatar">
         {{ recommendationResult.recommendedGateway.name.charAt(0) }}
       </div>
 
-      <div>
+      <div class="recommended-content">
         <h3>{{ recommendationResult.recommendedGateway.name }}</h3>
-        <p>ID: {{ recommendationResult.recommendedGateway.id }}</p>
+
+        <p>
+          ID:
+          {{ recommendationResult.recommendedGateway.id }}
+        </p>
+
         <p>
           Estimated Commission:
-          <strong>{{ formatMoney(recommendationResult.recommendedGateway.estimatedCommission) }}</strong>
+          <strong>
+            {{ formatMoney(recommendationResult.recommendedGateway.estimatedCommission) }}
+          </strong>
         </p>
+
         <p>
           Processing Time:
-          <strong>{{ recommendationResult.recommendedGateway.processingTime }}</strong>
+          <strong>
+            {{ recommendationResult.recommendedGateway.processingTime }}
+          </strong>
         </p>
       </div>
+
+    </div>
+
+    <div class="result-actions">
+
+      <button
+        class="danger-btn"
+        type="button"
+        (click)="cancelRecommendation()"
+        [disabled]="processPaymentLoading"
+      >
+        Cancel
+      </button>
+
+      <button
+        class="primary-btn"
+        type="button"
+        (click)="processRecommendedPayment()"
+        [disabled]="processPaymentLoading"
+      >
+        {{ processPaymentLoading ? 'Processing...' : 'Process Payment' }}
+      </button>
+
+    </div>
+
+    <div
+      class="process-reference"
+      *ngIf="processPaymentReference"
+    >
+      <p>Payment Reference Number</p>
+      <strong>{{ processPaymentReference }}</strong>
     </div>
 
     <h3 class="section-title">Alternatives</h3>
 
-    <div class="alternative-grid">
+    <div
+      class="alternative-grid"
+      *ngIf="recommendationResult.alternatives && recommendationResult.alternatives.length > 0"
+    >
 
       <div
         class="alternative-card"
@@ -113,16 +179,23 @@
 
     </div>
 
+    <div
+      class="empty-small"
+      *ngIf="!recommendationResult.alternatives || recommendationResult.alternatives.length === 0"
+    >
+      No alternatives available.
+    </div>
+
   </section>
 
-  <div class="error-box" *ngIf="splitError">
-    {{ splitError }}
-  </div>
-
-  <section class="result-card" *ngIf="splitResult">
+  <!-- Split Payment Result -->
+  <section
+    class="result-card"
+    *ngIf="splitResult"
+  >
 
     <div class="card-header">
-      <h2>Bonus: Split Payment Result</h2>
+      <h2>Split Payment Result</h2>
       <p>Shows how the backend divides over-limit payments.</p>
     </div>
 
@@ -158,6 +231,7 @@
     <h3 class="section-title">Split Amounts</h3>
 
     <div class="split-list">
+
       <div
         class="split-item"
         *ngFor="let split of splitResult.splits; let i = index"
@@ -165,6 +239,103 @@
         <span>Split {{ i + 1 }}</span>
         <strong>{{ formatMoney(split) }}</strong>
       </div>
+
+    </div>
+
+    <div class="result-actions">
+
+      <button
+        class="danger-btn"
+        type="button"
+        (click)="cancelSplit()"
+        [disabled]="processSplitLoading"
+      >
+        Cancel
+      </button>
+
+      <button
+        class="primary-btn"
+        type="button"
+        (click)="processSplitPayment()"
+        [disabled]="processSplitLoading"
+      >
+        {{ processSplitLoading ? 'Processing...' : 'Process Split Payment' }}
+      </button>
+
+    </div>
+
+  </section>
+
+  <!-- Process Split Result -->
+  <section
+    class="result-card"
+    *ngIf="processSplitResult"
+  >
+
+    <div class="card-header">
+      <h2>Processed Split Transactions</h2>
+      <p>Each split amount has been saved as a payment transaction.</p>
+    </div>
+
+    <div class="split-grid">
+
+      <div class="split-metric">
+        <p>Main Reference</p>
+        <strong>{{ processSplitResult.mainReferenceNumber }}</strong>
+      </div>
+
+      <div class="split-metric">
+        <p>Selected Gateway</p>
+        <strong>{{ processSplitResult.selectedGateway }}</strong>
+      </div>
+
+      <div class="split-metric">
+        <p>Total Amount</p>
+        <strong>{{ formatMoney(processSplitResult.totalAmount) }}</strong>
+      </div>
+
+      <div class="split-metric">
+        <p>Total Commission</p>
+        <strong>{{ formatMoney(processSplitResult.totalCommission) }}</strong>
+      </div>
+
+      <div class="split-metric">
+        <p>Split Count</p>
+        <strong>{{ processSplitResult.splitCount }}</strong>
+      </div>
+
+    </div>
+
+    <h3 class="section-title">Created Transactions</h3>
+
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+        <tr>
+          <th>Reference Number</th>
+          <th>Amount</th>
+          <th>Commission</th>
+          <th>Status</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr *ngFor="let transaction of processSplitResult.transactions">
+          <td>{{ transaction.referenceNumber }}</td>
+          <td>{{ formatMoney(transaction.amount) }}</td>
+          <td>{{ formatMoney(transaction.commission) }}</td>
+          <td>
+              <span class="status-pill success">
+                {{ transaction.status }}
+              </span>
+          </td>
+        </tr>
+        </tbody>
+
+      </table>
+
     </div>
 
   </section>

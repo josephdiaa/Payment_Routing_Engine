@@ -4,6 +4,7 @@ import com.example.payment_routing_engine.common.response.ApiResponse;
 import com.example.payment_routing_engine.modules.transaction.dto.requests.ProcessPaymentRequest;
 import com.example.payment_routing_engine.modules.transaction.dto.requests.RecommendationRequest;
 import com.example.payment_routing_engine.modules.transaction.dto.requests.SplitPaymentRequest;
+import com.example.payment_routing_engine.modules.transaction.dto.responses.ProcessSplitPaymentResponse;
 import com.example.payment_routing_engine.modules.transaction.dto.responses.RecommendationResponse;
 import com.example.payment_routing_engine.modules.transaction.dto.responses.SplitPaymentResponse;
 import com.example.payment_routing_engine.modules.transaction.service.PaymentProcessingService;
@@ -21,24 +22,30 @@ public class PaymentController {
     PaymentSplitterService paymentSplitterService;
     PaymentProcessingService paymentProcessingService;
 
-    public PaymentController(RoutingService routingService,PaymentSplitterService paymentSplitterService,PaymentProcessingService paymentProcessingService) {
+    public PaymentController(RoutingService routingService, PaymentSplitterService paymentSplitterService, PaymentProcessingService paymentProcessingService) {
         this.routingService = routingService;
         this.paymentSplitterService = paymentSplitterService;
-        this.paymentProcessingService=paymentProcessingService;
+        this.paymentProcessingService = paymentProcessingService;
     }
 
     @PostMapping("/api/payments/recommend")
-    public ResponseEntity<ApiResponse<RecommendationResponse>>recommendGateway(@RequestBody @Valid RecommendationRequest request){
-        return ResponseEntity.ok(ApiResponse.ok(routingService.recommend(request),"Recommendation generated successfully"));
+    public ResponseEntity<ApiResponse<RecommendationResponse>> recommendGateway(@RequestBody @Valid RecommendationRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok(routingService.recommend(request), "Recommendation generated successfully"));
     }
 
     @PostMapping("/api/payments/split")
-    public ResponseEntity<ApiResponse<SplitPaymentResponse>> splitPayment(@RequestBody @Valid SplitPaymentRequest request){
+    public ResponseEntity<ApiResponse<SplitPaymentResponse>> splitPayment(@RequestBody @Valid SplitPaymentRequest request) {
         return ResponseEntity.ok(ApiResponse.ok(paymentSplitterService.splitPayment(request)));
     }
 
     @PostMapping("/api/payments/process")
-    public ResponseEntity<ApiResponse<String>> processPayment(@RequestBody @Valid ProcessPaymentRequest processPaymentRequest){
+    public ResponseEntity<ApiResponse<String>> processPayment(@RequestBody @Valid ProcessPaymentRequest processPaymentRequest) {
         return ResponseEntity.ok(ApiResponse.ok(paymentProcessingService.processPayment(processPaymentRequest)));
+    }
+
+    @PostMapping("/api/payments/process-split")
+    public ResponseEntity<ApiResponse<ProcessSplitPaymentResponse>> processSplitPayment(@Valid @RequestBody ProcessPaymentRequest request) {
+        ProcessSplitPaymentResponse response = paymentProcessingService.processSplitPayment(request);
+        return ResponseEntity.ok(ApiResponse.ok(response, "Split payment processed successfully"));
     }
 }

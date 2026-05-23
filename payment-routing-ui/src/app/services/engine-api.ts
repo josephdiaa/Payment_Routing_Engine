@@ -115,6 +115,28 @@ export interface GatewayBreakdownItem {
   usedQuota: number;
   remainingQuota: number;
 }
+export interface ProcessPaymentRequest {
+  billerId: string;
+  amount: number;
+  urgency: string;
+}
+
+export interface SplitPaymentTransactionItem {
+  referenceNumber: string;
+  amount: number;
+  commission: number;
+  status: string;
+}
+
+export interface ProcessSplitPaymentResponse {
+  mainReferenceNumber: string;
+  selectedGateway: string;
+  requiresSplitting: boolean;
+  splitCount: number;
+  totalAmount: number;
+  totalCommission: number;
+  transactions: SplitPaymentTransactionItem[];
+}
 
 @Injectable({
   providedIn: 'root',
@@ -183,5 +205,12 @@ export class EngineApiService {
       { params },
     );
   }
-
+  processSplitPayment(
+    request: ProcessPaymentRequest,
+  ): Observable<ApiResponse<ProcessSplitPaymentResponse>> {
+    return this.http.post<ApiResponse<ProcessSplitPaymentResponse>>(
+      `${this.baseUrl}/payments/process-split`,
+      request,
+    );
+  }
 }

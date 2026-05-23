@@ -1,523 +1,432 @@
-<div class="dashboard-layout">
+<div class="dashboard-page">
 
-  <!-- Sidebar -->
-  <aside class="sidebar">
+  <!-- Top Bar -->
+  <header class="topbar">
 
-    <div class="brand">
-      <div class="brand-logo">PR</div>
-
-      <div>
-        <h2>Payment Routing</h2>
-        <span>Engine Console</span>
-      </div>
+    <div>
+      <p class="page-label">Dashboard</p>
+      <h1>Welcome back, {{ userName }}</h1>
     </div>
 
-    <nav class="nav-menu">
+    <div class="topbar-actions">
 
-      <a
-        class="nav-item"
-        [routerLink]="['/dashboard']"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
-      >
-        <span>🏠</span>
-        Dashboard
-      </a>
+      <div class="search-box">
+        <span>🔎</span>
 
-      <a
-        class="nav-item"
-        [routerLink]="['/gateways']"
-        routerLinkActive="active"
-      >
-        <span>🔀</span>
-        Gateways
-      </a>
-
-      <a
-        class="nav-item"
-        [routerLink]="['/payment-recommendation']"
-        routerLinkActive="active"
-      >
-        <span>🧭</span>
-        Recommendation
-      </a>
-
-      <a
-        class="nav-item"
-        [routerLink]="['/process-payment']"
-        routerLinkActive="active"
-      >
-        <span>💳</span>
-        Process Payment
-      </a>
-
-      <a
-        class="nav-item"
-        [routerLink]="['/transactions']"
-        routerLinkActive="active"
-      >
-        <span>📊</span>
-        Transactions
-      </a>
-
-      <a class="nav-item">
-        <span>⚙️</span>
-        Settings
-      </a>
-
-    </nav>
-
-    <div class="sidebar-footer">
-      <p>System Status</p>
-
-      <div class="system-status">
-        <span class="status-dot"></span>
-        All services operational
+        <input
+          type="text"
+          placeholder="Search gateway or report..."
+        />
       </div>
+
+      <button
+        class="notification-btn"
+        type="button"
+      >
+        🔔
+      </button>
+
+      <button
+        class="logout-btn"
+        type="button"
+        (click)="logout()"
+      >
+        Logout
+      </button>
+
     </div>
 
-  </aside>
+  </header>
 
-  <!-- Main Content -->
-  <main class="main-content">
+  <!-- Loading State -->
+  <div
+    class="loading-box"
+    *ngIf="loading"
+  >
+    Loading dashboard data...
+  </div>
 
-    <!-- Top Bar -->
-    <header class="topbar">
+  <!-- Error State -->
+  <div
+    class="error-box"
+    *ngIf="errorMessage"
+  >
+    {{ errorMessage }}
+  </div>
+
+  <!-- Filter Card -->
+  <section class="filter-card">
+
+    <div>
+      <h2>Daily Transaction Summary</h2>
+
+      <p>
+        Select biller and date to refresh the daily transaction report.
+      </p>
+    </div>
+
+    <div class="filter-actions">
+
+      <div class="filter-field">
+        <label>Biller ID</label>
+
+        <input
+          type="text"
+          name="billerId"
+          [(ngModel)]="billerId"
+          placeholder="Example: WE"
+        />
+      </div>
+
+      <div class="filter-field">
+        <label>Date</label>
+
+        <input
+          type="date"
+          name="selectedDate"
+          [(ngModel)]="selectedDate"
+        />
+      </div>
+
+      <button
+        class="refresh-btn"
+        type="button"
+        (click)="loadDashboardData()"
+        [disabled]="loading || !billerId || !selectedDate"
+      >
+        {{ loading ? 'Loading...' : 'Refresh' }}
+      </button>
+
+    </div>
+
+  </section>
+
+  <!-- Hero Section -->
+  <section class="hero-card">
+
+    <div>
+      <span class="hero-badge">Live Monitoring</span>
+
+      <h2>Payment routing performance overview</h2>
+
+      <p>
+        Monitor total processed amount, commissions, gateway quota usage,
+        and daily transaction distribution across your available gateways.
+      </p>
+    </div>
+
+    <div class="hero-stats">
 
       <div>
-        <p class="page-label">Dashboard</p>
-        <h1>Welcome back, {{ userName }}</h1>
+        <strong>{{ gateways.length }}</strong>
+        <span>Configured Gateways</span>
       </div>
 
-      <div class="topbar-actions">
-
-        <div class="search-box">
-          <span>🔎</span>
-
-          <input
-            type="text"
-            placeholder="Search gateway or report..."
-          />
-        </div>
-
-        <button
-          class="notification-btn"
-          type="button"
-        >
-          🔔
-        </button>
-
-        <button
-          class="logout-btn"
-          type="button"
-          (click)="logout()"
-        >
-          Logout
-        </button>
-
+      <div>
+        <strong>{{ breakdown.length }}</strong>
+        <span>Used Gateways Today</span>
       </div>
 
-    </header>
+    </div>
 
-    <!-- Loading State -->
+  </section>
+
+  <!-- Metrics -->
+  <section class="metrics-grid">
+
     <div
-      class="loading-box"
-      *ngIf="loading"
+      class="metric-card"
+      *ngFor="let metric of metrics"
     >
-      Loading dashboard data...
-    </div>
 
-    <!-- Error State -->
-    <div
-      class="error-box"
-      *ngIf="errorMessage"
-    >
-      {{ errorMessage }}
-    </div>
-
-    <!-- Filter Card -->
-    <section class="filter-card">
+      <div class="metric-icon">
+        {{ metric.icon }}
+      </div>
 
       <div>
-        <h2>Daily Transaction Summary</h2>
+        <p>{{ metric.title }}</p>
 
-        <p>
-          Select biller and date to refresh the daily transaction report.
-        </p>
-      </div>
+        <h3>{{ metric.value }}</h3>
 
-      <div class="filter-actions">
-
-        <div class="filter-field">
-          <label>Biller ID</label>
-
-          <input
-            type="text"
-            name="billerId"
-            [(ngModel)]="billerId"
-            placeholder="Example: BILLER001"
-          />
-        </div>
-
-        <div class="filter-field">
-          <label>Date</label>
-
-          <input
-            type="date"
-            name="selectedDate"
-            [(ngModel)]="selectedDate"
-          />
-        </div>
-
-        <button
-          class="refresh-btn"
-          type="button"
-          (click)="loadDashboardData()"
-          [disabled]="loading || !billerId || !selectedDate"
+        <span
+          class="metric-change"
+          [class.up]="metric.trend === 'up'"
+          [class.down]="metric.trend === 'down'"
+          [class.neutral]="metric.trend === 'neutral'"
         >
-          Refresh
-        </button>
-
+          {{ metric.change }}
+        </span>
       </div>
 
-    </section>
+    </div>
 
-    <!-- Hero Section -->
-    <section class="hero-card">
+  </section>
 
-      <div>
-        <span class="hero-badge">Live Monitoring</span>
+  <!-- Main Dashboard Grid -->
+  <section class="content-grid">
 
-        <h2>Payment routing performance overview</h2>
-
-        <p>
-          Monitor total processed amount, commissions, gateway quota usage,
-          and daily transaction distribution across your available gateways.
-        </p>
-      </div>
-
-      <div class="hero-stats">
-
-        <div>
-          <strong>{{ gateways.length }}</strong>
-          <span>Configured Gateways</span>
-        </div>
-
-        <div>
-          <strong>{{ breakdown.length }}</strong>
-          <span>Used Gateways Today</span>
-        </div>
-
-      </div>
-
-    </section>
-
-    <!-- Metrics -->
-    <section class="metrics-grid">
-
-      <div
-        class="metric-card"
-        *ngFor="let metric of metrics"
-      >
-
-        <div class="metric-icon">
-          {{ metric.icon }}
-        </div>
-
-        <div>
-          <p>{{ metric.title }}</p>
-
-          <h3>{{ metric.value }}</h3>
-
-          <span
-            class="metric-change"
-            [class.up]="metric.trend === 'up'"
-            [class.down]="metric.trend === 'down'"
-            [class.neutral]="metric.trend === 'neutral'"
-          >
-            {{ metric.change }}
-          </span>
-        </div>
-
-      </div>
-
-    </section>
-
-    <!-- Main Dashboard Grid -->
-    <section class="content-grid">
-
-      <!-- Gateway Health Panel -->
-      <div class="panel gateway-panel">
-
-        <div class="panel-header">
-
-          <div>
-            <h2>Gateway Health</h2>
-            <p>Current gateway status and quota utilization</p>
-          </div>
-
-          <button
-            class="secondary-btn"
-            type="button"
-            [routerLink]="['/gateways']"
-          >
-            View All
-          </button>
-
-        </div>
-
-        <div
-          class="empty-state"
-          *ngIf="!loading && gateways.length === 0"
-        >
-          <div class="empty-icon">🔀</div>
-          <h3>No gateways found</h3>
-          <p>No gateway records were returned from the backend.</p>
-        </div>
-
-        <div
-          class="gateway-list"
-          *ngIf="gateways.length > 0"
-        >
-
-          <div
-            class="gateway-card"
-            *ngFor="let gateway of gateways"
-          >
-
-            <div class="gateway-info">
-
-              <div class="gateway-avatar">
-                {{ gateway.name.charAt(0) }}
-              </div>
-
-              <div>
-                <h3>{{ gateway.name }}</h3>
-
-                <span
-                  class="status-pill"
-                  [class.active]="gateway.status === 'Active'"
-                  [class.warning]="gateway.status === 'Warning'"
-                  [class.inactive]="gateway.status === 'Inactive'"
-                >
-                  {{ gateway.status }}
-                </span>
-              </div>
-
-            </div>
-
-            <div class="gateway-numbers">
-
-              <div>
-                <p>Success Rate</p>
-                <strong>{{ gateway.successRate }}</strong>
-              </div>
-
-              <div>
-                <p>Quota</p>
-                <strong>{{ gateway.quota }}</strong>
-              </div>
-
-            </div>
-
-            <div class="progress-wrapper">
-
-              <div class="progress-label">
-                <span>Daily Usage</span>
-                <span>{{ gateway.dailyUsage }}</span>
-              </div>
-
-              <div class="progress-bar">
-                <div
-                  class="progress-fill"
-                  [style.width]="gateway.dailyUsage"
-                  [class.warning-fill]="gateway.status === 'Warning'"
-                  [class.inactive-fill]="gateway.status === 'Inactive'"
-                ></div>
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
-
-      <!-- Quick Actions Panel -->
-      <div class="panel quick-actions-panel">
-
-        <div class="panel-header">
-          <div>
-            <h2>Quick Actions</h2>
-            <p>Common operational shortcuts</p>
-          </div>
-        </div>
-
-        <div class="quick-actions">
-
-          <button
-            type="button"
-            [routerLink]="['/gateways']"
-          >
-            <span>🔀</span>
-            View Gateways
-          </button>
-
-          <button
-            type="button"
-            [routerLink]="['/payment-recommendation']"
-          >
-            <span>🧭</span>
-            Recommend Gateway
-          </button>
-
-          <button
-            type="button"
-            [routerLink]="['/payment-recommendation']"
-          >
-            <span>🧩</span>
-            Test Split Payment
-          </button>
-
-          <button
-            type="button"
-            [routerLink]="['/process-payment']"
-          >
-            <span>💳</span>
-            Process Payment
-          </button>
-
-          <button
-            type="button"
-            [routerLink]="['/transactions']"
-          >
-            <span>📊</span>
-            View Transactions
-          </button>
-
-        </div>
-
-        <div class="info-card">
-          <h3>Backend Status</h3>
-
-          <p>
-            Dashboard data is loaded from Spring Boot using JWT authentication.
-          </p>
-        </div>
-
-      </div>
-
-    </section>
-
-    <!-- Gateway Transaction Breakdown -->
-    <section class="panel transactions-panel">
+    <!-- Gateway Health Panel -->
+    <div class="panel gateway-panel">
 
       <div class="panel-header">
 
         <div>
-          <h2>Gateway Transaction Breakdown</h2>
-
-          <p>
-            Daily totals grouped by gateway for biller
-            <strong>{{ billerId }}</strong>
-            on
-            <strong>{{ selectedDate }}</strong>
-          </p>
+          <h2>Gateway Health</h2>
+          <p>Current gateway status and quota utilization</p>
         </div>
 
         <button
           class="secondary-btn"
           type="button"
-          (click)="loadDashboardData()"
-          [disabled]="loading"
+          [routerLink]="['/gateways']"
         >
-          Reload
+          View All
         </button>
 
       </div>
 
       <div
         class="empty-state"
-        *ngIf="!loading && breakdown.length === 0"
+        *ngIf="!loading && gateways.length === 0"
       >
-        <div class="empty-icon">📊</div>
-
-        <h3>No transactions found</h3>
-
-        <p>
-          No transaction summary data was returned for the selected biller and date.
-        </p>
+        <div class="empty-icon">🔀</div>
+        <h3>No gateways found</h3>
+        <p>No gateway records were returned from the backend.</p>
       </div>
 
       <div
-        class="table-wrapper"
-        *ngIf="breakdown.length > 0"
+        class="gateway-list"
+        *ngIf="gateways.length > 0"
       >
 
-        <table>
+        <div
+          class="gateway-card"
+          *ngFor="let gateway of gateways"
+        >
 
-          <thead>
-          <tr>
-            <th>Gateway</th>
-            <th>Transactions</th>
-            <th>Total Amount</th>
-            <th>Total Commission</th>
-            <th>Daily Limit</th>
-            <th>Used Quota</th>
-            <th>Remaining Quota</th>
-          </tr>
-          </thead>
+          <div class="gateway-info">
 
-          <tbody>
+            <div class="gateway-avatar">
+              {{ gateway.name.charAt(0) }}
+            </div>
 
-          <tr *ngFor="let item of breakdown">
+            <div>
+              <h3>{{ gateway.name }}</h3>
 
-            <td>
-              <div class="gateway-name-cell">
+              <span
+                class="status-pill"
+                [class.active]="gateway.status === 'Active'"
+                [class.warning]="gateway.status === 'Warning'"
+                [class.inactive]="gateway.status === 'Inactive'"
+              >
+                {{ gateway.status }}
+              </span>
+            </div>
 
-                <div class="table-avatar">
-                  {{ item.gatewayName.charAt(0) }}
-                </div>
+          </div>
 
-                <div>
-                  <strong>{{ item.gatewayName }}</strong>
-                  <span>{{ item.gatewayId }}</span>
-                </div>
+          <div class="gateway-numbers">
 
-              </div>
-            </td>
+            <div>
+              <p>Success Rate</p>
+              <strong>{{ gateway.successRate }}</strong>
+            </div>
 
-            <td>
-                <span class="count-badge">
-                  {{ item.transactionCount }}
-                </span>
-            </td>
+            <div>
+              <p>Quota</p>
+              <strong>{{ gateway.quota }}</strong>
+            </div>
 
-            <td>{{ formatMoney(item.totalAmount) }}</td>
+          </div>
 
-            <td>{{ formatMoney(item.totalCommission) }}</td>
+          <div class="progress-wrapper">
 
-            <td>{{ formatMoney(item.dailyLimit) }}</td>
+            <div class="progress-label">
+              <span>Daily Usage</span>
+              <span>{{ gateway.dailyUsage }}</span>
+            </div>
 
-            <td>{{ formatMoney(item.usedQuota) }}</td>
+            <div class="progress-bar">
+              <div
+                class="progress-fill"
+                [style.width]="gateway.dailyUsage"
+                [class.warning-fill]="gateway.status === 'Warning'"
+                [class.inactive-fill]="gateway.status === 'Inactive'"
+              ></div>
+            </div>
 
-            <td>
-                <span class="remaining-badge">
-                  {{ formatMoney(item.remainingQuota) }}
-                </span>
-            </td>
+          </div>
 
-          </tr>
-
-          </tbody>
-
-        </table>
+        </div>
 
       </div>
 
-    </section>
+    </div>
 
-  </main>
+    <!-- Quick Actions Panel -->
+    <div class="panel quick-actions-panel">
+
+      <div class="panel-header">
+        <div>
+          <h2>Quick Actions</h2>
+          <p>Common operational shortcuts</p>
+        </div>
+      </div>
+
+      <div class="quick-actions">
+
+        <button
+          type="button"
+          [routerLink]="['/gateways']"
+        >
+          <span>🔀</span>
+          View Gateways
+        </button>
+
+        <button
+          type="button"
+          [routerLink]="['/payment-recommendation']"
+        >
+          <span>🧭</span>
+          Recommend Gateway
+        </button>
+
+        <button
+          type="button"
+          [routerLink]="['/payment-recommendation']"
+        >
+          <span>🧩</span>
+          Split Payment
+        </button>
+
+        <button
+          type="button"
+          [routerLink]="['/process-payment']"
+        >
+          <span>💳</span>
+          Process Payment
+        </button>
+
+        <button
+          type="button"
+          [routerLink]="['/transactions']"
+        >
+          <span>📊</span>
+          View Transactions
+        </button>
+
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- Gateway Transaction Breakdown -->
+  <section class="panel transactions-panel">
+
+    <div class="panel-header">
+
+      <div>
+        <h2>Gateway Transaction Breakdown</h2>
+
+        <p>
+          Daily totals grouped by gateway for biller
+          <strong>{{ billerId }}</strong>
+          on
+          <strong>{{ selectedDate }}</strong>
+        </p>
+      </div>
+
+      <button
+        class="secondary-btn"
+        type="button"
+        (click)="loadDashboardData()"
+        [disabled]="loading"
+      >
+        Reload
+      </button>
+
+    </div>
+
+    <div
+      class="empty-state"
+      *ngIf="!loading && breakdown.length === 0"
+    >
+      <div class="empty-icon">📊</div>
+
+      <h3>No transactions found</h3>
+
+      <p>
+        No transaction summary data was returned for the selected biller and date.
+      </p>
+    </div>
+
+    <div
+      class="table-wrapper"
+      *ngIf="breakdown.length > 0"
+    >
+
+      <table>
+
+        <thead>
+        <tr>
+          <th>Gateway</th>
+          <th>Transactions</th>
+          <th>Total Amount</th>
+          <th>Total Commission</th>
+          <th>Daily Limit</th>
+          <th>Used Quota</th>
+          <th>Remaining Quota</th>
+        </tr>
+        </thead>
+
+        <tbody>
+
+        <tr *ngFor="let item of breakdown">
+
+          <td>
+            <div class="gateway-name-cell">
+
+              <div class="table-avatar">
+                {{ item.gatewayName.charAt(0) }}
+              </div>
+
+              <div>
+                <strong>{{ item.gatewayName }}</strong>
+                <span>{{ item.gatewayId }}</span>
+              </div>
+
+            </div>
+          </td>
+
+          <td>
+              <span class="count-badge">
+                {{ item.transactionCount }}
+              </span>
+          </td>
+
+          <td>{{ formatMoney(item.totalAmount) }}</td>
+
+          <td>{{ formatMoney(item.totalCommission) }}</td>
+
+          <td>{{ formatMoney(item.dailyLimit) }}</td>
+
+          <td>{{ formatMoney(item.usedQuota) }}</td>
+
+          <td>
+              <span class="remaining-badge">
+                {{ formatMoney(item.remainingQuota) }}
+              </span>
+          </td>
+
+        </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </section>
 
 </div>

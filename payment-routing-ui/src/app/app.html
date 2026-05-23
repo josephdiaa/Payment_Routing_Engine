@@ -1,10 +1,88 @@
-<!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
-<!-- * * * * * * * * * * * The content below * * * * * * * * * * * -->
-<!-- * * * * * * * * * * is only a placeholder * * * * * * * * * * -->
-<!-- * * * * * * * * * * and can be replaced.  * * * * * * * * * * -->
-<!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
-<!-- * * * * * * * * * Delete the template below * * * * * * * * * -->
-<!-- * * * * * * * to get started with your project! * * * * * * * -->
-<!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
+<div
+  class="app-shell"
+  *ngIf="showSidebar(); else loginOnly"
+>
 
-<router-outlet></router-outlet>
+  <!-- Global Sidebar -->
+  <aside class="sidebar">
+
+    <div class="brand">
+      <div class="brand-logo">PR</div>
+
+      <div>
+        <h2>Payment Routing</h2>
+        <span>Engine Console</span>
+      </div>
+    </div>
+
+    <nav class="nav-menu">
+
+      <a
+        class="nav-item"
+        [routerLink]="['/dashboard']"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        <span>🏠</span>
+        Dashboard
+      </a>
+
+      <a
+        class="nav-item"
+        [routerLink]="['/gateways']"
+        routerLinkActive="active"
+      >
+        <span>🔀</span>
+        Gateways
+      </a>
+
+      <a
+        class="nav-item"
+        [routerLink]="['/payment-recommendation']"
+        routerLinkActive="active"
+      >
+        <span>🧭</span>
+        Recommendation
+      </a>
+
+      <a
+        class="nav-item"
+        [routerLink]="['/process-payment']"
+        routerLinkActive="active"
+      >
+        <span>💳</span>
+        Process Payment
+      </a>
+
+      <a
+        class="nav-item"
+        [routerLink]="['/transactions']"
+        routerLinkActive="active"
+      >
+        <span>📊</span>
+        Transactions
+      </a>
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <p>System Status</p>
+
+      <div class="system-status">
+        <span class="status-dot"></span>
+        All services operational
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- Page Content -->
+  <main class="app-content">
+    <router-outlet></router-outlet>
+  </main>
+
+</div>
+
+<ng-template #loginOnly>
+  <router-outlet></router-outlet>
+</ng-template>
