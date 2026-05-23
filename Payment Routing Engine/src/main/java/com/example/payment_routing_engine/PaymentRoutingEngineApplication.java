@@ -17,4 +17,21 @@ public class PaymentRoutingEngineApplication {
         SpringApplication.run(PaymentRoutingEngineApplication.class, args);
     }
 
+    @Bean
+    public CommandLineRunner initDatabase(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        return args -> {
+            if (userRepository.count() == 0) {
+                User admin = new User();
+                admin.setUsername("admin");
+                admin.setPasswordHash(passwordEncoder.encode("password123"));
+                admin.setRole("ADMIN");
+                admin.setActive(true);
+                admin.setCreatedAt(Instant.now());
+                admin.setUpdatedAt(Instant.now());
+                userRepository.save(admin);
+                System.out.println("Default admin user created: admin / password123");
+            }
+        };
+    }
+
 }
