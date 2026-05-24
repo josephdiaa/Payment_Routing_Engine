@@ -1,0 +1,777 @@
+{
+  "info": {
+    "_postman_id": "5d163613-224f-40bd-9b33-bda18e7ac53d",
+    "name": "Payment Routing Engine",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "18885776"
+  },
+  "item": [
+    {
+      "name": "🔑 Authentication Group",
+      "item": [
+        {
+          "name": "Login API",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"admin\", \"password\": \"password123\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8090/api/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8090",
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Generated from cURL: curl -X POST \"http://localhost:8090/api/auth/login\" \\\r\n     -H \"Content-Type: application/json\" \\\r\n     -d '{\"username\": \"admin\", \"password\": \"password123\"}'"
+          },
+          "response": []
+        },
+        {
+          "name": "Failure Scenario (401 Unauthorized)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"admin\", \"password\": \"wrongpassword\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8090/api/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8090",
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Generated from cURL: curl -X POST \"http://localhost:8090/api/auth/login\" \\\r\n     -H \"Content-Type: application/json\" \\\r\n     -d '{\"username\": \"admin\", \"password\": \"wrongpassword\"}'"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "💳 Gateways Management Group",
+      "item": [
+        {
+          "name": "Get All Gateways API",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer <VALID_JWT_TOKEN>"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8090/api/gateways",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8090",
+              "path": [
+                "api",
+                "gateways"
+              ]
+            },
+            "description": "Generated from cURL: curl -X GET \"http://localhost:8090/api/gateways\" \\\r\n     -H \"Authorization: Bearer <VALID_JWT_TOKEN>\""
+          },
+          "response": []
+        },
+        {
+          "name": "Failure Scenario (403 Forbidden / 401 Unauthorized) (Get All Gateways)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8090/api/gateways",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8090",
+              "path": [
+                "api",
+                "gateways"
+              ]
+            },
+            "description": "Generated from cURL: curl -X GET \"http://localhost:8090/api/gateways\"\r\n# (No Authorization header provided)"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Gateway API (Happy Scenario (201 Created))",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer <VALID_JWT_TOKEN>"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n       \"name\": \"Fawry Pay\",\r\n       \"fixedCommission\": 3.50,\r\n       \"percentageCommission\": 1.20,\r\n       \"dailyLimit\": 150000.00,\r\n       \"processingTime\": \"Instant\",\r\n       \"availabilityStart\": \"08:00:00\",\r\n       \"availabilityEnd\": \"23:00:00\",\r\n       \"availableDays\": \"SAT,SUN,MON,TUE,WED,THU,FRI\",\r\n       \"minTransactionAmount\": 10.00,\r\n       \"maxTransactionAmount\": 12000.00,\r\n       \"active\": true\r\n     }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8090/api/gateways",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8090",
+              "path": [
+                "api",
+                "gateways"
+              ]
+            },
+            "description": "Generated from cURL: curl -X POST \"http://localhost:8090/api/gateways\" \\\r\n     -H \"Authorization: Bearer <VALID_JWT_TOKEN>\" \\\r\n     -H \"Content-Type: application/json\" \\\r\n     -d '{\r\n       \"name\": \"Fawry Pay\",\r\n       \"fixedCommission\": 3.50,\r\n       \"percentageCommission\": 1.20,\r\n       \"dailyLimit\": 150000.00,\r\n       \"processingTime\": \"Instant\",\r\n       \"availabilityStart\": \"08:00:00\",\r\n       \"availabilityEnd\": \"23:00:00\",\r\n       \"availableDays\": \"SAT,SUN,MON,TUE,WED,THU,FRI\",\r\n       \"minTransactionAmount\": 10.00,\r\n       \"maxTransactionAmount\": 12000.00,\r\n       \"active\": true\r\n     }'"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Gateway (Failure Scenario (400 Bad Request))",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer <VALID_JWT_TOKEN>"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n       \"fixedCommission\": -5.00, \r\n       \"active\": true\r\n     }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8090/api/gateways",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8090",
+              "path": [
+                "api",
+                "gateways"
+              ]
+            },
+            "description": "Generated from cURL: curl -X POST \"http://localhost:8090/api/gateways\" \\\r\n     -H \"Authorization: Bearer <VALID_JWT_TOKEN>\" \\\r\n     -H \"Content-Type: application/json\" \\\r\n     -d '{\r\n       \"fixedCommission\": -5.00, \r\n       \"active\": true\r\n     }'"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Gateway API (Happy Scenario (200 OK))",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer <VALID_JWT_TOKEN>"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n       \"name\": \"Fawry Pay Premium\",\r\n       \"fixedCommission\": 2.50,\r\n       \"percentageCommission\": 0.95,\r\n       \"dailyLimit\": 250000.00,\r\n       \"processingTime\": \"Instant\",\r\n       \"availabilityStart\": \"07:00:00\",\r\n       \"availabilityEnd\": \"23:30:00\",\r\n       \"availableDays\": \"SAT,SUN,MON,TUE,WED,THU,FRI\",\r\n       \"minTransactionAmount\": 5.00,\r\n       \"maxTransactionAmount\": 20000.00,\r\n       \"active\": true\r\n     }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8090/api/gateways/<VALID_GATEWAY_UUID>",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8090",
+              "path": [
+                "api",
+                "gateways",
+                "<VALID_GATEWAY_UUID>"
+              ]
+            },
+            "description": "Generated from cURL: curl -X PUT \"http://localhost:8090/api/gateways/<VALID_GATEWAY_UUID>\" \\\r\n     -H \"Authorization: Bearer <VALID_JWT_TOKEN>\" \\\r\n     -H \"Content-Type: application/json\" \\\r\n     -d '{\r\n       \"name\": \"Fawry Pay Premium\",\r\n       \"fixedCommission\": 2.50,\r\n       \"percentageCommission\": 0.95,\r\n       \"dailyLimit\": 250000.00,\r\n       \"processingTime\": \"Instant\",\r\n       \"availabilityStart\": \"07:00:00\",\r\n       \"availabilityEnd\": \"23:30:00\",\r\n       \"availableDays\": \"SAT,SUN,MON,TUE,WED,THU,FRI\",\r\n       \"minTransactionAmount\": 5.00,\r\n       \"maxTransactionAmount\": 20000.00,\r\n       \"active\": true\r\n     }'"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Gateway API (Failure Scenario (404 Not Found))",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer <VALID_JWT_TOKEN>"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ ... valid payload ... }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8090/api/gateways/00000000-0000-0000-0000-000000000000",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8090",
+              "path": [
+                "api",
+                "gateways",
+                "00000000-0000-0000-0000-000000000000"
+              ]
+            },
+            "description": "Generated from cURL: curl -X PUT \"http://localhost:8090/api/gateways/00000000-0000-0000-0000-000000000000\" \\\r\n     -H \"Authorization: Bearer <VALID_JWT_TOKEN>\" \\\r\n     -H \"Content-Type: application/json\" \\\r\n     -d '{ ... valid payload ... }'"
+          },
+          "response": []
+        },
+        {
+          "name": "Toggle Gateway Status API(Happy Scenario (200 OK))",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer <VALID_JWT_TOKEN>"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"active\": false}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8090/api/gateways/<VALID_GATEWAY_UUID>/status",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8090",
+              "path": [
+                "api",
+                "gateways",
+                "<VALID_GATEWAY_UUID>",
+                "status"
+              ]
+            },
+            "description": "Generated from cURL: curl -X PATCH \"http://localhost:8090/api/gateways/<VALID_GATEWAY_UUID>/status\" \\\r\n     -H \"Authorization: Bearer <VALID_JWT_TOKEN>\" \\\r\n     -H \"Content-Type: application/json\" \\\r\n     -d '{\"active\": false}'"
+          },
+          "response": []
+        },
+        {
+          "name": "Toggle Gateway Status API(Failure Scenario (400 Bad Request))",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer <VALID_JWT_TOKEN>"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8090/api/gateways/<VALID_GATEWAY_UUID>/status",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8090",
+              "path": [
+                "api",
+                "gateways",
+                "<VALID_GATEWAY_UUID>",
+                "status"
+              ]
+            },
+            "description": "Generated from cURL: curl -X PATCH \"http://localhost:8090/api/gateways/<VALID_GATEWAY_UUID>/status\" \\\r\n     -H \"Authorization: Bearer <VALID_JWT_TOKEN>\" \\\r\n     -H \"Content-Type: application/json\" \\\r\n     -d '{}'"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🔀 Payments & Routing Group",
+      "item": [
+        {
+          "name": "Recommend Best Gateway API(Failure Scenario (404 Not Found))",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer <VALID_JWT_TOKEN>"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n       \"billerId\": \"INVALID_BILLER\",\r\n       \"amount\": 1500.00,\r\n       \"urgency\": \"NORMAL\"\r\n     }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8090/api/payments/recommend",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8090",
+              "path": [
+                "api",
+                "payments",
+                "recommend"
+              ]
+            },
+            "description": "Generated from cURL: curl -X POST \"http://localhost:8090/api/payments/recommend\" \\\r\n     -H \"Authorization: Bearer <VALID_JWT_TOKEN>\" \\\r\n     -H \"Content-Type: application/json\" \\\r\n     -d '{\r\n       \"billerId\": \"INVALID_BILLER\",\r\n       \"amount\": 1500.00,\r\n       \"urgency\": \"NORMAL\"\r\n     }'"
+          },
+          "response": []
+        },
+        {
+          "name": "Recommend Best Gateway API(Happy Scenario (200 OK))",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer <VALID_JWT_TOKEN>"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n       \"billerId\": \"bil1\",\r\n       \"amount\": 1500.00,\r\n       \"urgency\": \"NORMAL\"\r\n     }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8090/api/payments/recommend",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8090",
+              "path": [
+                "api",
+                "payments",
+                "recommend"
+              ]
+            },
+            "description": "Generated from cURL: curl -X POST \"http://localhost:8090/api/payments/recommend\" \\\r\n     -H \"Authorization: Bearer <VALID_JWT_TOKEN>\" \\\r\n     -H \"Content-Type: application/json\" \\\r\n     -d '{\r\n       \"billerId\": \"bil1\",\r\n       \"amount\": 1500.00,\r\n       \"urgency\": \"NORMAL\"\r\n     }'"
+          },
+          "response": []
+        },
+        {
+          "name": "Split Payment (Dry Run) API",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer <VALID_JWT_TOKEN>"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n       \"billerId\": \"bil1\",\r\n       \"amount\": 75000.00,\r\n       \"urgency\": \"NORMAL\"\r\n     }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8090/api/payments/split",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8090",
+              "path": [
+                "api",
+                "payments",
+                "split"
+              ]
+            },
+            "description": "Generated from cURL: curl -X POST \"http://localhost:8090/api/payments/split\" \\\r\n     -H \"Authorization: Bearer <VALID_JWT_TOKEN>\" \\\r\n     -H \"Content-Type: application/json\" \\\r\n     -d '{\r\n       \"billerId\": \"bil1\",\r\n       \"amount\": 75000.00,\r\n       \"urgency\": \"NORMAL\"\r\n     }'"
+          },
+          "response": []
+        },
+        {
+          "name": "Split Payment (Dry Run) API (Failure Scenario (400 Bad Request))",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer <VALID_JWT_TOKEN>"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n       \"billerId\": \"bil1\",\r\n       \"amount\": -50.00,\r\n       \"urgency\": \"NORMAL\"\r\n     }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8090/api/payments/split",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8090",
+              "path": [
+                "api",
+                "payments",
+                "split"
+              ]
+            },
+            "description": "Generated from cURL: curl -X POST \"http://localhost:8090/api/payments/split\" \\\r\n     -H \"Authorization: Bearer <VALID_JWT_TOKEN>\" \\\r\n     -H \"Content-Type: application/json\" \\\r\n     -d '{\r\n       \"billerId\": \"bil1\",\r\n       \"amount\": -50.00,\r\n       \"urgency\": \"NORMAL\"\r\n     }'"
+          },
+          "response": []
+        },
+        {
+          "name": "Process Single Payment API (Happy Scenario (200 OK))",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer <VALID_JWT_TOKEN>"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n       \"billerId\": \"bil1\",\r\n       \"amount\": 2500.00,\r\n       \"urgency\": \"NORMAL\"\r\n     }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8090/api/payments/process",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8090",
+              "path": [
+                "api",
+                "payments",
+                "process"
+              ]
+            },
+            "description": "Generated from cURL: curl -X POST \"http://localhost:8090/api/payments/process\" \\\r\n     -H \"Authorization: Bearer <VALID_JWT_TOKEN>\" \\\r\n     -H \"Content-Type: application/json\" \\\r\n     -d '{\r\n       \"billerId\": \"bil1\",\r\n       \"amount\": 2500.00,\r\n       \"urgency\": \"NORMAL\"\r\n     }'"
+          },
+          "response": []
+        },
+        {
+          "name": "Process Single Payment API (Failure Scenario (400 Bad Request))",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer <VALID_JWT_TOKEN>"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n       \"billerId\": \"bil1\",\r\n       \"amount\": 99999999.00,\r\n       \"urgency\": \"NORMAL\"\r\n     }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8090/api/payments/process",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8090",
+              "path": [
+                "api",
+                "payments",
+                "process"
+              ]
+            },
+            "description": "Generated from cURL: curl -X POST \"http://localhost:8090/api/payments/process\" \\\r\n     -H \"Authorization: Bearer <VALID_JWT_TOKEN>\" \\\r\n     -H \"Content-Type: application/json\" \\\r\n     -d '{\r\n       \"billerId\": \"bil1\",\r\n       \"amount\": 99999999.00,\r\n       \"urgency\": \"NORMAL\"\r\n     }'"
+          },
+          "response": []
+        },
+        {
+          "name": "Process Split Payment API (Happy Scenario (200 OK))",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer <VALID_JWT_TOKEN>"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n       \"billerId\": \"bil1\",\r\n       \"amount\": 95000.00,\r\n       \"urgency\": \"NORMAL\"\r\n     }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8090/api/payments/process-split",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8090",
+              "path": [
+                "api",
+                "payments",
+                "process-split"
+              ]
+            },
+            "description": "Generated from cURL: curl -X POST \"http://localhost:8090/api/payments/process-split\" \\\r\n     -H \"Authorization: Bearer <VALID_JWT_TOKEN>\" \\\r\n     -H \"Content-Type: application/json\" \\\r\n     -d '{\r\n       \"billerId\": \"bil1\",\r\n       \"amount\": 95000.00,\r\n       \"urgency\": \"NORMAL\"\r\n     }'"
+          },
+          "response": []
+        },
+        {
+          "name": "Process Split Payment API (Failure Scenario (400 Bad Request))",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer <VALID_JWT_TOKEN>"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n       \"billerId\": \"\",\r\n       \"amount\": 95000.00,\r\n       \"urgency\": \"NORMAL\"\r\n     }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8090/api/payments/process-split",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8090",
+              "path": [
+                "api",
+                "payments",
+                "process-split"
+              ]
+            },
+            "description": "Generated from cURL: curl -X POST \"http://localhost:8090/api/payments/process-split\" \\\r\n     -H \"Authorization: Bearer <VALID_JWT_TOKEN>\" \\\r\n     -H \"Content-Type: application/json\" \\\r\n     -d '{\r\n       \"billerId\": \"\",\r\n       \"amount\": 95000.00,\r\n       \"urgency\": \"NORMAL\"\r\n     }'"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📊 Transaction Reports Group",
+      "item": [
+        {
+          "name": "Biller Daily Transaction Summary Report API (Failure Scenario (400 Bad Request))",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer <VALID_JWT_TOKEN>"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8090/api/billers/bil1/transactions?date=24-05-2026",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8090",
+              "path": [
+                "api",
+                "billers",
+                "bil1",
+                "transactions"
+              ],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "24-05-2026"
+                }
+              ]
+            },
+            "description": "Generated from cURL: curl -X GET \"http://localhost:8090/api/billers/bil1/transactions?date=24-05-2026\" \\\r\n     -H \"Authorization: Bearer <VALID_JWT_TOKEN>\""
+          },
+          "response": []
+        },
+        {
+          "name": "Biller Daily Transaction Summary Report API (Happy Scenario (200 OK))",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer <VALID_JWT_TOKEN>"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8090/api/billers/bil1/transactions?date=2026-05-24",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8090",
+              "path": [
+                "api",
+                "billers",
+                "bil1",
+                "transactions"
+              ],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2026-05-24"
+                }
+              ]
+            },
+            "description": "Generated from cURL: curl -X GET \"http://localhost:8090/api/billers/bil1/transactions?date=2026-05-24\" \\\r\n     -H \"Authorization: Bearer <VALID_JWT_TOKEN>\""
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
