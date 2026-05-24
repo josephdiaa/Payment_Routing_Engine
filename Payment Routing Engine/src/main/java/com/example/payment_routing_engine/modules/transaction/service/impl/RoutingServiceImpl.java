@@ -48,98 +48,145 @@ public class RoutingServiceImpl implements RoutingService {
 
     @Override
     public RecommendationResponse recommend(RecommendationRequest request) {
-        Optional<Biller> billerOptional = billerRepository.findByCode(request.getBillerId());
-        if(billerOptional.isEmpty()){
-            throw new ResourceNotFoundException("Biller not found with code: " + request.getBillerId());
-        }
-        List<Gateway> gatewayList = gatewayRepository.findAll();
-        gatewayList = gatewayList.stream().
-                filter(gateway -> gateway.getActive()==true).
-                filter(gateway -> gatewayAvailabilityChecker.isAvailable(gateway, LocalDateTime.now())).
-                filter(gateway -> gatewayValidator.isAmountValid(request.getAmount(),gateway)).
-                filter(gateway -> gatewayDailyUsageService.getRemainingQuota(gateway.getId(), LocalDate.now(),gateway.getDailyLimit()).compareTo(request.getAmount())>=0).toList();
 
-        if(gatewayList.isEmpty()){
-            throw  new BusinessValidationException("No available gateway found for this request");
+        Optional<Biller> billerOptional =
+                billerRepository.findByCode(request.getBillerId());
+
+        if (billerOptional.isEmpty()) {
+            throw new ResourceNotFoundException(
+                    "Biller not found with code: " + request.getBillerId()
+            );
         }
 
-        // Validate urgency value
-        String urgency = request.getUrgency().toUpperCase();
+        String urgency = request.getUrgency();
+
+        if (urgency == null) {
+            throw new BusinessValidationException("Urgency is required");
+        }
+
+        urgency = urgency.toUpperCase();
+
         if (!urgency.equals("INSTANT") && !urgency.equals("CAN_WAIT")) {
             throw new BusinessValidationException("Invalid urgency. Use INSTANT or CAN_WAIT");
         }
 
-        // Calculate commission for each viable gateway
+        List<Gateway> gatewayList = gatewayRepository.findAll();
+
+        gatewayList = gatewayList.stream()
+                .filter(gateway -> Boolean.TRUE.equals(gateway.getActive()))
+                .filter(gateway ->
+                        gatewayAvailabilityChecker.isAvailable(
+                                gateway,
+                                LocalDateTime.now()
+                        )
+                )
+                .filter(gateway ->
+                        gatewayValidator.isAmountValid(
+                                request.getAmount(),
+                                gateway
+                        )
+                )
+                .filter(gateway ->
+                        gatewayDailyUsageService.getRemainingQuota(
+                                gateway.getId(),
+                                LocalDate.now(),
+                                gateway.getDailyLimit()
+                        ).compareTo(request.getAmount()) >= 0
+                )
+                .toList();
+
+        if (gatewayList.isEmpty()) {
+            throw new BusinessValidationException("No available gateway found for this request");
+        }
+
         Map<Gateway, BigDecimal> commissionMap = new HashMap<>();
+
         for (Gateway gateway : gatewayList) {
-            BigDecimal commission = commissionCalculator.calculateCommission(
-                    request.getAmount(),
-                    gateway.getFixedCommission(),
-                    gateway.getPercentageCommission()
-            );
+
+            BigDecimal commission =
+                    commissionCalculator.calculateCommission(
+                            request.getAmount(),
+                            gateway.getFixedCommission(),
+                            gateway.getPercentageCommission()
+                    );
+
             commissionMap.put(gateway, commission);
         }
 
-        // Find the maximum commission (used to normalize cost scores)
-        BigDecimal maxCommission = commissionMap.values().stream()
+        BigDecimal minCommission = commissionMap.values()
+                .stream()
+                .min(Comparator.naturalOrder())
+                .orElse(BigDecimal.ZERO);
+
+        BigDecimal maxCommission = commissionMap.values()
+                .stream()
                 .max(Comparator.naturalOrder())
                 .orElse(BigDecimal.ONE);
 
-        // Score each gateway
+        BigDecimal commissionRange = maxCommission.subtract(minCommission);
+
         Map<Gateway, Double> scoreMap = new HashMap<>();
+
         for (Gateway gateway : gatewayList) {
             BigDecimal commission = commissionMap.get(gateway);
+            double costScore;
+            if (commissionRange.compareTo(BigDecimal.ZERO) == 0) {
+                costScore = 100.0;
 
-            // Cost score: cheaper = higher score
-            double costScore = 100.0;
-            if (maxCommission.compareTo(BigDecimal.ZERO) > 0) {
-                costScore = 100.0 - (commission.divide(maxCommission, 10, RoundingMode.HALF_UP)
-                        .multiply(BigDecimal.valueOf(100)).doubleValue());
+            } else {
+                costScore = maxCommission
+                        .subtract(commission)
+                        .divide(commissionRange, 10, RoundingMode.HALF_UP)
+                        .multiply(BigDecimal.valueOf(100))
+                        .doubleValue();
             }
 
-            // Speed score based on processing time
             double speedScore = getSpeedScore(gateway.getProcessingTime());
-
-            // Final score weighted by urgency
             double finalScore;
+
             if (urgency.equals("INSTANT")) {
-                finalScore = (speedScore * 0.70) + (costScore * 0.30);
+                finalScore = (speedScore * 0.80) + (costScore * 0.20);
+
             } else {
-                finalScore = (speedScore * 0.30) + (costScore * 0.70);
+                finalScore = (speedScore * 0.10) + (costScore * 0.90);
             }
             scoreMap.put(gateway, finalScore);
         }
 
-        // Sort gateways by score descending
         List<Gateway> sortedGateways = new ArrayList<>(gatewayList);
-        sortedGateways.sort((g1, g2) -> Double.compare(scoreMap.get(g2), scoreMap.get(g1)));
 
-        // Build response
+        sortedGateways.sort((g1, g2) ->
+                        Double.compare(scoreMap.get(g2), scoreMap.get(g1)));
+
         Gateway best = sortedGateways.get(0);
+
         GatewayRecommendationItem recommended =
                 GatewayRecommendationItem.fromGateway(best, commissionMap.get(best));
 
         List<GatewayRecommendationItem> alternatives = new ArrayList<>();
+
         for (int i = 1; i < sortedGateways.size(); i++) {
-            Gateway alt = sortedGateways.get(i);
-            alternatives.add(GatewayRecommendationItem.fromGateway(alt, commissionMap.get(alt)));
+            Gateway alternativeGateway = sortedGateways.get(i);
+            alternatives.add(GatewayRecommendationItem.fromGateway(alternativeGateway, commissionMap.get(alternativeGateway))
+            );
         }
 
-        return new RecommendationResponse(recommended, alternatives);
+        return new RecommendationResponse(
+                recommended,
+                alternatives
+        );
     }
 
-    private int getSpeedScore(String processingTime){
-        if(processingTime.equals("Instant")){
+    private int getSpeedScore(String processingTime) {
+        if ("Instant".equalsIgnoreCase(processingTime)) {
             return 100;
         }
-        else if(processingTime.equals("2 hours")){
+        if ("2 hours".equalsIgnoreCase(processingTime)) {
             return 60;
         }
-        else if(processingTime.equals("24 hours")){
+        if ("24 hours".equalsIgnoreCase(processingTime)) {
             return 20;
         }
-        else{
-            return 40;
-        }
+        return 40;
     }
 }
